@@ -7,7 +7,7 @@ Segunda versão candidata pública do Zanella Orchestrator Community, um orquest
 - os seletores de arquivo e pasta agora usam o serviço nativo do Flet;
 - removida a dependência de `tkinter`, ausente no runtime empacotado da RC1;
 - falhas ao abrir um seletor passam a ser exibidas no status sem encerrar a interface;
-- adicionados testes automatizados dos seletores de cadastro, importação, exportação, backup e restauração.
+- adicionados testes automatizados dos seletores e de todos os grupos de botões da interface.
 
 ## Destaques
 
@@ -32,7 +32,7 @@ Também existe um pacote portátil em ZIP. Extraia todo o conteúdo antes de abr
 ## Validação
 
 - Windows 10/11 x64;
-- 42 testes automatizados aprovados;
+- 47 testes automatizados aprovados;
 - 1 teste PostgreSQL ignorado na execução final local;
 - executável e ZIP validados com armazenamento SQLite vazio;
 - checksum SHA-256 publicado com os artefatos.
