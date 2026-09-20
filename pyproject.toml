@@ -1,0 +1,83 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "rpa-control-center"
+version = "0.1.0"
+description = "Local-first orchestration for automation workflows."
+readme = "README.md"
+license = "Apache-2.0"
+license-files = ["LICENSE"]
+requires-python = ">=3.12"
+dependencies = [
+  "SQLAlchemy>=2.0,<2.1",
+  "alembic>=1.13,<2",
+  "keyring>=25,<27",
+  "pywin32>=306; sys_platform == 'win32'",
+]
+
+[project.optional-dependencies]
+postgres = ["psycopg[binary]>=3.2,<4"]
+ui = ["flet>=1,<2", "flet-desktop>=1,<2"]
+
+[project.scripts]
+rcc = "rpa_control_center.cli:main"
+rcc-ui = "rpa_control_center.ui:run"
+
+[dependency-groups]
+dev = ["pytest>=8,<10", "psutil>=6,<8", "Pillow>=11,<13"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+tmp_path_retention_policy = "failed"
+addopts = "--basetemp=.test-tmp"
+
+[tool.flet]
+product = "Zanella Orchestrator"
+artifact = "Zanella-Orchestrator"
+compile_app = false
+
+[tool.flet.app]
+path = "."
+module = "main"
+exclude = [
+  ".git",
+  ".github",
+  ".venv",
+  ".pytest_cache",
+  ".serena",
+  ".test-tmp",
+  ".tmp-tests*",
+  ".tmp-tests",
+  ".tmp-tests-2",
+  ".tmp-tests-3",
+  ".tmp-tests-4",
+  ".tmp-tests-5",
+  ".review*-test-tmp",
+  ".review-test-tmp",
+  ".review2-test-tmp",
+  ".final-doc-test-tmp",
+  "__pycache__",
+  "data",
+  "dist",
+  "docs",
+  "demo",
+  "example",
+  "hive",
+  "installer",
+  "roster-backups",
+  "roster.json",
+  "scripts",
+  "tests",
+  ".gitignore",
+  "config.example.toml",
+  "Iniciar Orquestrador.bat",
+  "MVP.md",
+  "README.md",
+  "RELEASE_NOTES.md",
+  "uv.lock",
+]
+
+[tool.flet.windows]
+dependencies = ["flet>=1,<2", "psycopg[binary]>=3.2,<4"]

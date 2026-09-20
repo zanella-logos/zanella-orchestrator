@@ -1,0 +1,54 @@
+# Ambientes virtuais
+.venv/
+env/
+venv/
+
+# Caches e artefatos de build
+.pytest_cache/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+*.egg-info/
+build/
+dist/
+
+# Temporários locais de testes e ferramentas
+.test-tmp/
+.tmp-tests*/
+.review*-test-tmp/
+.final-doc-test-tmp/
+.serena/
+
+# Configurações e segredos
+.env
+config.toml
+credentials/
+secrets.json
+
+# Dados, bancos de dados e logs
+data/
+logs/
+*.db
+*.sqlite
+*.sqlite3
+rpa_control_center.db
+
+# Exemplos locais e referências externas
+example/
+referencias/
+referencia_externa/
+
+# Documentação técnica privada sincronizada com DevKB
+docs/devkb/
+
+# Artefatos do Munder, Antigravity e LLM
+hive/
+roster-backups/
+roster.json
+.gemini/
+.ai/
+
+# Sistema operacional
+.DS_Store
+Thumbs.db

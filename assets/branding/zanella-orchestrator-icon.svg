@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" role="img" aria-labelledby="title desc">
+  <title id="title">Zanella Orchestrator</title>
+  <desc id="desc">Z geométrico azul com saída em chevron ciano.</desc>
+  <path fill="#2563EB" d="M210 190H785L815 220V315L800 355L480 670H650L735 750L650 830H265L235 800V720L250 685L600 340H210L180 310V220Z"/>
+  <path fill="#06B6D4" d="M765 670H835L915 750L835 830H765L845 750Z"/>
+</svg>

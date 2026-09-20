@@ -1,0 +1,40 @@
+name: Relatar um bug
+description: Informe um comportamento incorreto ou uma regressão.
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: Não inclua senhas, tokens, bancos ou logs com dados sensíveis.
+  - type: input
+    id: version
+    attributes:
+      label: Versão
+      placeholder: 0.1.0-rc1
+    validations:
+      required: true
+  - type: textarea
+    id: behavior
+    attributes:
+      label: O que aconteceu?
+      description: Descreva o comportamento observado e o esperado.
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Como reproduzir
+      placeholder: Liste os passos mínimos.
+    validations:
+      required: true
+  - type: input
+    id: windows
+    attributes:
+      label: Versão do Windows
+    validations:
+      required: true
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs sem dados sensíveis
+      render: shell

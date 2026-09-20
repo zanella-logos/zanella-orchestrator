@@ -1,0 +1,11 @@
+[database]
+backend = "sqlite"
+sqlite_path = "data/control_center.db"
+
+# Para PostgreSQL, copie este arquivo para config.toml e use:
+# backend = "postgresql"
+# host = "localhost"
+# port = 5432
+# database = "rpa_control_center"
+# username = "rcc_app"
+# A senha fica no Windows Credential Manager, nunca neste arquivo.

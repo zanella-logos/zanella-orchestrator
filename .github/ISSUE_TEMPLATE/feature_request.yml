@@ -1,0 +1,33 @@
+name: Sugerir uma melhoria
+description: Proponha uma função ou mudança de experiência.
+title: "[Melhoria]: "
+labels: ["enhancement"]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Qual problema precisa ser resolvido?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Solução sugerida
+      description: Explique o fluxo esperado e quem se beneficia.
+    validations:
+      required: true
+  - type: dropdown
+    id: scope
+    attributes:
+      label: Área
+      options:
+        - Interface
+        - Execução e fila
+        - Agendamento
+        - Logs e histórico
+        - Banco de dados
+        - Empacotamento e instalação
+        - Documentação
+        - Outra
+    validations:
+      required: true
