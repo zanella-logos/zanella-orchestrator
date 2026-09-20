@@ -9,7 +9,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-0.1.0--rc1-F59E0B)](RELEASE_NOTES.md)
+[![Release](https://img.shields.io/badge/release-0.1.0--rc2-F59E0B)](RELEASE_NOTES.md)
 
 O **Zanella Orchestrator Community** é um motor de execução e orquestração local focado em simplicidade, privacidade e controle. Ideal para desenvolvedores RPA e equipes pequenas, permite gerenciar scripts Python, executáveis, `.bat` e Node.js em um único painel, sem a complexidade de infraestruturas em nuvem logo no primeiro dia.
 
@@ -109,7 +109,7 @@ No cenário `hang`, configure um timeout curto para validar `timed_out`; configu
 
 ## Versão candidata
 
-A versão `0.1.0-rc1` está pronta para validação externa em outra máquina Windows. Ela inclui instalador, pacote portátil, checksums SHA-256 e [notas da versão](RELEASE_NOTES.md).
+A versão `0.1.0-rc2` está pronta para validação externa em outra máquina Windows. Ela inclui instalador, pacote portátil, checksums SHA-256 e [notas da versão](RELEASE_NOTES.md).
 
 ## Executável Windows
 
@@ -123,7 +123,7 @@ Após autorizar o download oficial do Flutter no primeiro build:
 
 As fontes Python permanecem no pacote porque o Alembic precisa descobrir os arquivos de revisão em `migrations\versions`. O build gera a aplicação em `build\windows`. O instalador oficial é produzido pelo Inno Setup a partir de `installer\Zanella-Orchestrator.iss`.
 
-Versão candidata local validada: `dist\Zanella-Orchestrator-0.1.0-rc1-windows-x64.zip`. O arquivo `dist\SHA256SUMS.txt` permite conferir a integridade do pacote.
+Versão candidata local validada: `dist\Zanella-Orchestrator-0.1.0-rc2-windows-x64.zip`. O arquivo `dist\SHA256SUMS.txt` permite conferir a integridade do pacote.
 
 ## CLI inicial
 

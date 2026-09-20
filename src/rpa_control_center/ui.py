@@ -101,6 +101,8 @@ class ControlCenterUI:
     def __init__(self, page: ft.Page, engine):
         self.page = page
         self.engine = engine
+        self.file_picker = ft.FilePicker()
+        self.page.services.append(self.file_picker)
         self.status_icon = ft.Icon(ft.Icons.CHECK_CIRCLE, color=SUCCESS, size=16)
         self.status = ft.Text("Sistema pronto", color=ft.Colors.ON_SURFACE, size=12)
         self.status_indicator = ft.Container(
@@ -585,22 +587,25 @@ class ControlCenterUI:
             else:
                 initial = str(PROJECT_ROOT)
 
-            def pick_native():
-                import tkinter as tk
-                from tkinter import filedialog
-                root = tk.Tk()
-                root.withdraw()
-                root.attributes('-topmost', True)
+            try:
                 if pick_directory:
-                    res = filedialog.askdirectory(parent=root, initialdir=initial, title="Selecionar Pasta")
+                    path = await self.file_picker.get_directory_path(
+                        dialog_title="Selecionar pasta",
+                        initial_directory=initial,
+                    )
                 else:
-                    res = filedialog.askopenfilename(parent=root, initialdir=initial, title="Selecionar Arquivo")
-                root.destroy()
-                return res
+                    files = await self.file_picker.pick_files(
+                        dialog_title="Selecionar arquivo",
+                        initial_directory=initial,
+                        allow_multiple=False,
+                    )
+                    path = files[0].path if files else None
+            except Exception as exc:
+                self.set_status(f"Erro ao abrir seletor: {exc}", error=True)
+                self.page.update()
+                return
 
-            path = await asyncio.to_thread(pick_native)
             if path:
-                # tkinter returns forward slashes, let's normalize to Path standard
                 field.value = str(Path(path))
 
                 # Se esse campo é o arquivo principal, atualizamos a pasta de trabalho automaticamente
@@ -895,33 +900,37 @@ class ControlCenterUI:
             self.page.update()
 
     async def _pick_open_file(self, title: str, filetypes) -> Path | None:
-        def pick_native():
-            import tkinter as tk
-            from tkinter import filedialog
-            root = tk.Tk()
-            root.withdraw()
-            root.attributes("-topmost", True)
-            result = filedialog.askopenfilename(parent=root, title=title, filetypes=filetypes)
-            root.destroy()
-            return result
-        selected = await asyncio.to_thread(pick_native)
-        return Path(selected) if selected else None
+        extensions = [pattern.removeprefix("*.") for _, pattern in filetypes]
+        try:
+            files = await self.file_picker.pick_files(
+                dialog_title=title,
+                file_type=ft.FilePickerFileType.CUSTOM,
+                allowed_extensions=extensions,
+                allow_multiple=False,
+            )
+            return Path(files[0].path) if files else None
+        except Exception as exc:
+            self.set_status(f"Erro ao abrir seletor: {exc}", error=True)
+            self.page.update()
+            return None
 
     async def _pick_save_file(self, title: str, filename: str, extension: str, filetypes) -> Path | None:
-        def pick_native():
-            import tkinter as tk
-            from tkinter import filedialog
-            root = tk.Tk()
-            root.withdraw()
-            root.attributes("-topmost", True)
-            result = filedialog.asksaveasfilename(
-                parent=root, title=title, initialfile=filename,
-                defaultextension=extension, filetypes=filetypes,
+        extensions = [pattern.removeprefix("*.") for _, pattern in filetypes]
+        try:
+            selected = await self.file_picker.save_file(
+                dialog_title=title,
+                file_name=filename,
+                file_type=ft.FilePickerFileType.CUSTOM,
+                allowed_extensions=extensions,
             )
-            root.destroy()
-            return result
-        selected = await asyncio.to_thread(pick_native)
-        return Path(selected) if selected else None
+            if not selected:
+                return None
+            path = Path(selected)
+            return path if path.suffix else path.with_suffix(extension)
+        except Exception as exc:
+            self.set_status(f"Erro ao abrir seletor: {exc}", error=True)
+            self.page.update()
+            return None
 
     async def confirm_purge_old_runs(self, _=None) -> None:
         try:

@@ -1,6 +1,13 @@
-# Zanella Orchestrator Community 0.1.0-rc1
+# Zanella Orchestrator Community 0.1.0-rc2
 
-Primeira versão candidata pública do Zanella Orchestrator Community, um orquestrador local para automações Windows.
+Segunda versão candidata pública do Zanella Orchestrator Community, um orquestrador local para automações Windows.
+
+## Correção crítica
+
+- os seletores de arquivo e pasta agora usam o serviço nativo do Flet;
+- removida a dependência de `tkinter`, ausente no runtime empacotado da RC1;
+- falhas ao abrir um seletor passam a ser exibidas no status sem encerrar a interface;
+- adicionados testes automatizados dos seletores de cadastro, importação, exportação, backup e restauração.
 
 ## Destaques
 
@@ -18,14 +25,14 @@ Primeira versão candidata pública do Zanella Orchestrator Community, um orques
 
 ## Instalação
 
-Baixe e execute `Zanella-Orchestrator-Setup-0.1.0-rc1-windows-x64.exe`.
+Baixe e execute `Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe`.
 
 Também existe um pacote portátil em ZIP. Extraia todo o conteúdo antes de abrir `Zanella-Orchestrator.exe`.
 
 ## Validação
 
 - Windows 10/11 x64;
-- 38 testes automatizados aprovados;
+- 42 testes automatizados aprovados;
 - 1 teste PostgreSQL ignorado na execução final local;
 - executável e ZIP validados com armazenamento SQLite vazio;
 - checksum SHA-256 publicado com os artefatos.

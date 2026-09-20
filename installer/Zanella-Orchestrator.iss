@@ -1,5 +1,5 @@
 #define MyAppName "Zanella Orchestrator"
-#define MyAppVersion "0.1.0-rc1"
+#define MyAppVersion "0.1.0-rc2"
 #define MyAppPublisher "Victor César Zanella"
 #define MyAppExeName "Zanella-Orchestrator.exe"
 
@@ -9,7 +9,7 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppVerName={#MyAppName} {#MyAppVersion}
 AppPublisher={#MyAppPublisher}
-VersionInfoVersion=0.1.0.1
+VersionInfoVersion=0.1.0.2
 VersionInfoCompany={#MyAppPublisher}
 VersionInfoDescription=Instalador do Zanella Orchestrator Community
 VersionInfoCopyright=Copyright 2026 Victor César Zanella
@@ -20,7 +20,7 @@ PrivilegesRequired=lowest
 ArchitecturesAllowed=x64compatible
 ArchitecturesInstallIn64BitMode=x64compatible
 OutputDir=..\dist
-OutputBaseFilename=Zanella-Orchestrator-Setup-0.1.0-rc1-windows-x64
+OutputBaseFilename=Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64
 SetupIconFile=..\assets\branding\zanella-orchestrator-icon.ico
 UninstallDisplayIcon={app}\{#MyAppExeName}
 LicenseFile=..\LICENSE
