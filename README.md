@@ -1,5 +1,7 @@
+<p align="right"><strong>English</strong> · <a href="README.pt-BR.md">Português (Brasil)</a></p>
+
 <p align="center">
-  <img src="assets/branding/zanella-orchestrator-icon.png" alt="Logo do Zanella Orchestrator" width="160">
+  <img src="assets/branding/zanella-orchestrator-icon.png" alt="Zanella Orchestrator logo" width="160">
 </p>
 
 # Zanella Orchestrator
@@ -11,173 +13,162 @@
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
 [![Release](https://img.shields.io/badge/release-0.1.0--rc2-F59E0B)](RELEASE_NOTES.md)
 
-## Download para Windows
+## Download for Windows
 
-[![Baixar o instalador para Windows](https://img.shields.io/badge/Download-Instalador%20Windows-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)
 
-**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)** · [Ver a versão mais recente](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Versão portátil e checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc2)
+**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)** · [View the latest release](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Portable package and checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc2)
 
-Compatível com Windows 10 e 11 de 64 bits. O aplicativo ainda não possui assinatura digital; por isso, o Windows pode exibir um aviso de segurança. Confira o checksum SHA-256 publicado na release antes da instalação.
+Compatible with 64-bit Windows 10 and 11. The application is not digitally signed yet, so Windows may display a security warning. Verify the SHA-256 checksum published with the release before installing.
 
-O **Zanella Orchestrator Community** é um motor de execução e orquestração local focado em simplicidade, privacidade e controle. Ideal para desenvolvedores RPA e equipes pequenas, permite gerenciar scripts Python, executáveis, `.bat` e Node.js em um único painel, sem a complexidade de infraestruturas em nuvem logo no primeiro dia.
+**Zanella Orchestrator Community** is a local execution and orchestration engine focused on simplicity, privacy, and control. It helps RPA developers and small teams manage Python, PowerShell, Batch, executable, Node.js, and Java automations from one interface without requiring cloud infrastructure.
 
-**Por que o Zanella Orchestrator Community?**
-- **Local-first:** Tudo roda na sua máquina ou servidor local. Sem vendor lock-in.
-- **SQLite Out-of-the-Box:** Nenhuma configuração de banco necessária para começar. O PostgreSQL é opcional.
-- **Múltiplos executores:** Suporte nativo a scripts `.py`, executáveis `.exe`, scripts batch `.bat`, entre outros.
-- **Gestão limpa:** Fila FIFO, histórico de execuções, captura nativa de logs e status (sucesso vs falha de negócio).
-- **Agendamento Básico:** Integração direta com gatilhos do Agendador de Tarefas do Windows para automação local.
+**Why Zanella Orchestrator Community?**
 
-*(Módulos avançados planejados para o **Zanella Orchestrator Pro** incluirão controle de múltiplas máquinas (Remote Nodes), calendários de execução complexos com dependências e retries, RBAC, e Dashboards Avançados de SLA).*
+- **Local-first:** runs on your workstation or local server, without vendor lock-in.
+- **SQLite out of the box:** no database setup is required; PostgreSQL remains optional.
+- **Multiple executors:** Python, PowerShell, Batch, EXE, Node.js, and Java JAR files.
+- **Clear operations:** FIFO queue, execution history, native log capture, and separate technical and business outcomes.
+- **Basic scheduling:** one Windows Task Scheduler trigger activates schedules managed by the application.
 
-## Ambiente de desenvolvimento
+Planned **Zanella Orchestrator Pro** modules include remote nodes, advanced calendars with dependencies and retries, RBAC, and advanced SLA dashboards.
 
-Python 3.12 ou superior e uv.
+## Development environment
+
+Requires Python 3.12 or newer and [uv](https://docs.astral.sh/uv/).
 
 ```powershell
 uv sync --extra postgres --extra ui
 uv run pytest -q
 ```
 
-O arquivo `uv.lock` fixa as dependências. SQLAlchemy e Alembic cuidam da persistência; pywin32 fornece os controles de processos Windows. Flet já integra o ambiente para a demonstração e para a próxima etapa da interface.
+`uv.lock` pins dependencies. SQLAlchemy and Alembic handle persistence, pywin32 provides Windows process controls, and Flet powers the desktop interface.
 
-Abrir a interface:
+Open the interface:
 
 ```powershell
 .venv\Scripts\rcc-ui.exe
 ```
 
-O primeiro painel permite cadastrar automações, enfileirar, executar a fila sem bloquear a janela, cancelar, consultar histórico e acompanhar logs. Consulte [Flet versus Python](docs/FLET-INTERFACE.md) para entender cada controle e callback usado.
+The application can register automations, enqueue or start them immediately, process the queue without blocking the window, cancel executions, browse history, and display logs. See the Portuguese [user manual](docs/MANUAL-USUARIO.md) for detailed UI instructions and [Flet versus Python](docs/FLET-INTERFACE.md) for the control and callback mapping.
 
-Instruções operacionais dos campos da interface estão no [Manual do usuário](docs/MANUAL-USUARIO.md).
+## Local PostgreSQL
 
-## PostgreSQL local
-
-O servidor é opcional para uso normal, mas requerido para validar a compatibilidade. Com PostgreSQL instalado e ativo:
+PostgreSQL is optional for normal use. With a local PostgreSQL server installed and running:
 
 ```powershell
 uv run python scripts/setup_postgresql.py
 uv run python scripts/validate_postgresql.py
 ```
 
-O primeiro comando solicita a senha administrativa sem exibi-la. Ele cria o usuário limitado `rcc_app`, o banco operacional `rpa_control_center` e o banco descartável `rpa_control_center_test`. Uma senha aleatória do aplicativo é guardada no Windows Credential Manager; a senha administrativa não é armazenada.
+The setup requests the administrative password without displaying or storing it. It creates the restricted `rcc_app` user, the `rpa_control_center` operational database, and the disposable `rpa_control_center_test` database. A random application password is stored in Windows Credential Manager.
 
-Execute o setup com a mesma conta Windows que executará o Zanella Orchestrator e o Agendador. O script para ao encontrar o usuário existente e não altera instalações anteriores automaticamente.
+Run setup under the same Windows account that will run Zanella Orchestrator and its scheduled task. The script stops when it finds an existing user and does not alter earlier installations automatically.
 
-## Implementado
+## Implemented
 
-- Modelos de robôs e execuções, com cópia da configuração por execução.
-- Migration inicial e reserva transacional de um item da fila, validadas em SQLite e PostgreSQL 18.
-- Mutex Windows entre sessões, identificado por instalação.
-- Processo criado suspenso, associado a Job Object e depois iniciado.
-- Encerramento da árvore de processos ao fechar o último handle do Job Object.
-- Testes com processos reais para concorrência, encerramento e queda do supervisor.
-- Motor sequencial com logs contínuos em UTF-8, timeout, cancelamento, recuperação e resultado de negócio opcional.
-- CLI inicial para migrations, cadastro, fila, consulta, cancelamento e processamento.
-- Robô demonstrativo em Flet que abre uma janela, captura e valida sua imagem e apaga o arquivo temporário.
-- Demonstração com Chrome, página local controlada e evidência persistida na Área de Trabalho.
-- Robô de validação com cenários de sucesso, falha de negócio, falha técnica, timeout e cancelamento.
-- Remoção de uma automação com seu próprio histórico e logs, bloqueada durante execuções ativas.
-- Remoção individual de uma execução finalizada e da respectiva pasta de logs.
-- Edição do cadastro sem alterar as configurações congeladas nas execuções anteriores.
-- Ativação e desativação de automações com bloqueio durante itens ativos ou enfileirados.
-- Execução imediata por automação, iniciando o motor e ignorando a fila.
-- Indicadores coloridos para estados técnicos e resultados de negócio.
-- Adaptadores de comando para Python, PowerShell, Batch, executáveis, Node.js e arquivos JAR.
-- Migração compatível com os robôs Python existentes; o tipo padrão continua sendo `python`.
+- Robot and execution models with an immutable configuration snapshot per run.
+- Initial migration and transactional queue claiming validated on SQLite and PostgreSQL 18.
+- Per-installation Windows mutex to guarantee sequential execution across sessions.
+- Suspended process creation, Windows Job Object assignment, and controlled startup.
+- Full child-process tree termination when the final Job Object handle closes.
+- Real-process tests for concurrency, termination, and supervisor failure.
+- Sequential engine with UTF-8 streaming logs, timeouts, cancellation, recovery, and optional business outcomes.
+- CLI for migrations, registration, queueing, history, cancellation, scheduling, and processing.
+- Flet, Chrome, and validation demo robots covering screenshots and execution outcomes.
+- Robot editing, activation, deactivation, immediate execution, and guarded removal.
+- Individual completed-run removal with its log directory.
+- Colored technical-state and business-outcome indicators.
+- Command adapters for Python, PowerShell, Batch, EXE, Node.js, and Java JAR files.
 
-O mutex deve usar o mesmo identificador em todas as entradas de uma instalação. A execução pelo Agendador foi validada com a mesma conta Windows; contas diferentes ainda exigem teste específico. A reserva transacional sozinha não impede dois itens diferentes de rodarem ao mesmo tempo: o mutex também é obrigatório.
+All entry points in one installation must use the same mutex identifier. The scheduler was validated under the same Windows account as the application. Transactional claiming alone does not prevent two different jobs from running simultaneously; the mutex is also required.
 
-Validação de 2026-09-17: 38 testes foram aprovados e 1 ignorado (PostgreSQL), cobrindo SQLite, executor genérico, migrations repetíveis, concorrência, Job Objects, queda do supervisor, sucesso, falha de negócio, falha técnica, fila sequencial, logs, timeout, cancelamento, captura do navegador, edição, ativação e remoções. O teste PostgreSQL fica disponível pela validação dedicada com credenciais do usuário.
+Validation on 2026-09-17: 38 tests passed and 1 PostgreSQL test was skipped. Coverage includes SQLite, generic executors, repeatable migrations, concurrency, Job Objects, supervisor failure, success, business failure, technical failure, sequential queueing, logs, timeout, cancellation, browser capture, editing, activation, and removals. PostgreSQL has a separate credential-aware validation flow.
 
-## Banco e migrations
+## Database and migrations
 
-Para o banco SQLite padrão, criar uma pasta `data` e executar:
+For the default SQLite database, create a `data` directory and run:
 
 ```powershell
 uv run alembic upgrade head
 ```
 
-`RCC_DATABASE_URL` permite selecionar um banco PostgreSQL via driver psycopg. Não guardar senhas em arquivos versionados. A migration foi validada localmente em SQLite e PostgreSQL 18.
+Set `RCC_DATABASE_URL` to use PostgreSQL through psycopg. Never store passwords in versioned files. The validation script builds `RCC_TEST_POSTGRES_URL` only inside the test process and refuses databases that already contain tables.
 
-O validador monta `RCC_TEST_POSTGRES_URL` apenas no processo de teste usando o cofre. O teste recusa bancos com tabelas existentes; cria tabelas e testa downgrade/upgrade, deixando o esquema de teste instalado. Nunca apontar para banco operacional.
+## Operational validation through the UI
 
-## Validação operacional pela interface
+Register `demo/browser_evidence_robot.py` as Python to validate a real Chrome child process. The demo uses a local page and temporary profile, then saves `RCC-evidencia-<run>.png` to the Desktop without requiring internet access.
 
-Cadastre `demo/browser_evidence_robot.py` como Python para validar um processo filho real do Chrome. A demonstração usa uma página local, perfil temporário e salva `RCC-evidencia-<run>.png` na Área de Trabalho. Ela não depende de internet nem de um site externo.
+Register `demo/validation_robot.py` with one of these arguments:
 
-Cadastre `demo/validation_robot.py` mais de uma vez e informe um argumento por cadastro:
+- `success`: emits progressive logs and reports business success;
+- `business_error`: exits with code zero but reports a business failure;
+- `technical_error`: exits with code 7 and a technical failure;
+- `hang`: creates a child process and waits for timeout or cancellation.
 
-- `success`: produz logs graduais e resultado de negócio `success`;
-- `business_error`: processo termina com código zero, mas declara falha de negócio;
-- `technical_error`: termina com código 7 e estado técnico de falha;
-- `hang`: cria um processo filho e aguarda timeout ou cancelamento.
+Use a short timeout with `hang` to validate `timed_out`, or a long timeout followed by **Cancelar** to validate `cancelled`. Enqueue two `success` runs to confirm sequential ordering.
 
-No cenário `hang`, configure um timeout curto para validar `timed_out`; configure um timeout longo e use **Cancelar** para validar `cancelled`. Enfileire dois cenários `success` para confirmar a ordem sequencial.
+## Release candidate
 
-## Versão candidata
+Version `0.1.0-rc2` is available for external validation on another Windows machine. It includes an installer, portable package, SHA-256 checksums, and [release notes](RELEASE_NOTES.md).
 
-A versão `0.1.0-rc2` está pronta para validação externa em outra máquina Windows. Ela inclui instalador, pacote portátil, checksums SHA-256 e [notas da versão](RELEASE_NOTES.md).
+## Windows executable
 
-## Executável Windows
-
-O projeto segue a estrutura oficial do `flet build`, com entrada em `main.py` e configuração no `pyproject.toml`. No aplicativo empacotado, banco, logs e configuração usam `FLET_APP_STORAGE_DATA`; no desenvolvimento continuam na pasta `data` do projeto.
-
-Após autorizar o download oficial do Flutter no primeiro build:
+The project follows the official `flet build` structure with `main.py` as its entry point and configuration in `pyproject.toml`. Packaged builds store the database, logs, and configuration in `FLET_APP_STORAGE_DATA`; development uses the project `data` directory.
 
 ```powershell
 .venv\Scripts\flet.exe build windows --python-version 3.13 --no-compile-app --yes --no-rich-output
 ```
 
-As fontes Python permanecem no pacote porque o Alembic precisa descobrir os arquivos de revisão em `migrations\versions`. O build gera a aplicação em `build\windows`. O instalador oficial é produzido pelo Inno Setup a partir de `installer\Zanella-Orchestrator.iss`.
+Python sources remain in the package because Alembic discovers revisions under `migrations\versions`. The build is written to `build\windows`; Inno Setup builds the installer from `installer\Zanella-Orchestrator.iss`.
 
-Versão candidata local validada: `dist\Zanella-Orchestrator-0.1.0-rc2-windows-x64.zip`. O arquivo `dist\SHA256SUMS.txt` permite conferir a integridade do pacote.
+Locally validated candidate: `dist\Zanella-Orchestrator-0.1.0-rc2-windows-x64.zip`. Verify it with `dist\SHA256SUMS.txt`.
 
-## CLI inicial
+## CLI
 
 ```powershell
 uv run rcc init
-uv run rcc robot-add "Exemplo" "C:\caminho\robo.py" --python "C:\caminho\.venv\Scripts\python.exe" --cwd "C:\caminho" --timeout 3600
-uv run rcc robot-add "PowerShell" "C:\caminho\robo.ps1" --type powershell --executable "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --cwd "C:\caminho"
-uv run rcc enqueue ID_DO_ROBO
+uv run rcc robot-add "Example" "C:\path\robot.py" --python "C:\path\.venv\Scripts\python.exe" --cwd "C:\path" --timeout 3600
+uv run rcc robot-add "PowerShell" "C:\path\robot.ps1" --type powershell --executable "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --cwd "C:\path"
+uv run rcc enqueue ROBOT_ID
 uv run rcc engine
 uv run rcc runs
 uv run rcc scheduler
-uv run rcc cancel ID_DA_EXECUCAO
+uv run rcc cancel RUN_ID
 ```
 
-O comando `engine` processa a fila até esvaziar. O Agendador usará essa mesma entrada. Logs completos ficam em `data/logs/<run_id>`; o banco mantém caminhos, estados, horários, código de saída e resultado declarado pelo robô.
+`engine` processes the queue until empty. Complete logs are stored in `data/logs/<run_id>`; the database stores paths, states, timestamps, exit codes, and declared business outcomes.
 
-Os runtimes externos não são distribuídos pelo Zanella Orchestrator. Node.js, Java ou outro executável precisam estar instalados e seus caminhos devem ser cadastrados. O adaptador PowerShell usa `ExecutionPolicy Bypass` somente na sessão filha; não modifica a política global do Windows.
+External runtimes are not bundled. Node.js, Java, and other executables must be installed separately and registered with their paths. The PowerShell adapter applies `ExecutionPolicy Bypass` only to the child session and does not change the global Windows policy.
 
-Validação multilíngue de 2026-09-17: Python/Flet, PowerShell 5.1, Node.js 22.16.0 e OpenJDK 25.0.3 LTS foram executados pela fila real com código de saída `0` e resultado de negócio `success`. Um executável também foi iniciado diretamente pelo adaptador genérico.
+Multilanguage validation on 2026-09-17 ran Python/Flet, PowerShell 5.1, Node.js 22.16.0, and OpenJDK 25.0.3 LTS through the real queue with exit code `0` and business outcome `success`. The generic adapter also launched an executable directly.
 
-## Direção de produto
+## Product direction
 
-| Zanella Orchestrator Community (Gratuito) | Zanella Orchestrator Pro |
+| Zanella Orchestrator Community | Zanella Orchestrator Pro |
 | --- | --- |
-| Python, PowerShell, EXE, Batch, Node.js e Java | Remote Nodes (Controle central de múltiplas máquinas) |
-| Execução manual e fila sequencial local | Instalação como serviço Windows invisível |
-| Logs, histórico, timeout e cancelamento | Dashboards de SLA e Analytics avançado |
-| SQLite out-of-the-box e PostgreSQL opcional | Autenticação Empresarial (RBAC, Active Directory / SSO) |
-| Agendamento básico e gatilho automático único do Windows | Calendários de execução avançados (dependências, retries, cron) |
-| API básica para módulos | Alertas avançados (Teams, Slack, Webhooks) |
+| Python, PowerShell, EXE, Batch, Node.js, and Java | Remote nodes across multiple machines |
+| Manual execution and local sequential queue | Invisible Windows service |
+| Logs, history, timeout, and cancellation | Advanced SLA and analytics dashboards |
+| SQLite out of the box and optional PostgreSQL | Enterprise authentication: RBAC, Active Directory, and SSO |
+| Basic scheduling through one Windows trigger | Advanced calendars, dependencies, retries, and cron |
+| Basic module API | Advanced Teams, Slack, and webhook alerts |
 
-Docker será opcional para infraestrutura. Executor Windows permanece nativo; mobile poderá ser um painel remoto futuro. Redis não é necessário para esta etapa.
+Docker will remain optional infrastructure. The Windows executor stays native; a remote mobile dashboard may be added later. Redis is not required at this stage.
 
-Escopo: [MVP](MVP.md). Decisões técnicas: [fundação](docs/decisao-fundacao.md) e [executor genérico](docs/decisao-executor-generico.md).
+Scope: [MVP](MVP.md). Technical decisions: [foundation](docs/decisao-fundacao.md) and [generic executor](docs/decisao-executor-generico.md).
 
-## Licença
+## License
 
 Copyright 2026 Victor César Zanella
 
-Este projeto é licenciado sob a licença [Apache 2.0](LICENSE).
+Licensed under the [Apache License 2.0](LICENSE).
 
-## Autor
+## Author
 
-**Victor César Zanella** é profissional de automação e RPA, criador de conteúdo e autor. Criou o Zanella Orchestrator para tornar a execução local de automações mais organizada, transparente e acessível — porque até robô precisa de alguém organizando a fila.
+**Victor César Zanella** is an automation and RPA professional, content creator, and author. He created Zanella Orchestrator to make local automation execution more organized, transparent, and accessible—because even robots need someone to organize the queue.
 
 - [LinkedIn](https://www.linkedin.com/in/victor-zlogos)
 - [GitHub](https://github.com/zanella-logos)
-- [Nerd Profeta no YouTube](https://www.youtube.com/@nerdprofeta) — conteúdo nerd e gamer, lives e reflexões bíblicas.
-- Livro: [**A Jornada do Nerd para se tornar um Profeta**](https://link.amazon/B09CPEwfe).
+- [Nerd Profeta on YouTube](https://www.youtube.com/@nerdprofeta) — nerd and gaming content, livestreams, and biblical reflections.
+- Book: [**A Jornada do Nerd para se tornar um Profeta**](https://link.amazon/B09CPEwfe).
