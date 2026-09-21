@@ -32,22 +32,31 @@ O **Zanella Orchestrator Community** é um motor de execução e orquestração 
 
 *(Módulos avançados planejados para o **Zanella Orchestrator Pro** incluirão controle de múltiplas máquinas (Remote Nodes), calendários de execução complexos com dependências e retries, RBAC, e Dashboards Avançados de SLA).*
 
+## Executar pelo código-fonte
+
+Esta opção evita o instalador sem assinatura e é indicada para desenvolvedores. Requer [Git](https://git-scm.com/downloads/win), [Python 3.12+](https://www.python.org/downloads/windows/) e [uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+```powershell
+git clone https://github.com/zanella-logos/zanella-orchestrator.git
+cd zanella-orchestrator
+uv sync --extra ui
+uv run rcc-ui
+```
+
+O comando `uv sync --extra ui` cria um ambiente isolado `.venv`, instala as versões exatas registradas no `uv.lock` e adiciona a interface desktop Flet. Ele não instala runtimes externos usados pelos robôs, como Node.js ou Java.
+
+Se o processo falhar, copie a saída do terminal e [abra uma issue no GitHub](https://github.com/zanella-logos/zanella-orchestrator/issues/new). Os erros não são enviados automaticamente.
+
 ## Ambiente de desenvolvimento
 
-Python 3.12 ou superior e uv.
+Para incluir o suporte opcional ao PostgreSQL e executar os testes:
 
 ```powershell
 uv sync --extra postgres --extra ui
 uv run pytest -q
 ```
 
-O arquivo `uv.lock` fixa as dependências. SQLAlchemy e Alembic cuidam da persistência; pywin32 fornece os controles de processos Windows. Flet já integra o ambiente para a demonstração e para a próxima etapa da interface.
-
-Abrir a interface:
-
-```powershell
-.venv\Scripts\rcc-ui.exe
-```
+SQLAlchemy e Alembic cuidam da persistência; pywin32 fornece os controles de processos Windows e Flet fornece a interface desktop.
 
 O primeiro painel permite cadastrar automações, enfileirar, executar a fila sem bloquear a janela, cancelar, consultar histórico e acompanhar logs. Consulte [Flet versus Python](docs/FLET-INTERFACE.md) para entender cada controle e callback usado.
 

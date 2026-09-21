@@ -33,22 +33,31 @@ Compatible with 64-bit Windows 10 and 11. The application is not digitally signe
 
 Planned **Zanella Orchestrator Pro** modules include remote nodes, advanced calendars with dependencies and retries, RBAC, and advanced SLA dashboards.
 
+## Run from source
+
+This option avoids the unsigned installer and is intended for developers. It requires [Git](https://git-scm.com/downloads/win), [Python 3.12+](https://www.python.org/downloads/windows/), and [uv](https://docs.astral.sh/uv/getting-started/installation/).
+
+```powershell
+git clone https://github.com/zanella-logos/zanella-orchestrator.git
+cd zanella-orchestrator
+uv sync --extra ui
+uv run rcc-ui
+```
+
+`uv sync --extra ui` creates an isolated `.venv`, installs the exact dependencies locked in `uv.lock`, and adds the Flet desktop interface. It does not install the external runtimes used by robots, such as Node.js or Java.
+
+If this process fails, copy the command output and [open a GitHub issue](https://github.com/zanella-logos/zanella-orchestrator/issues/new). Errors are not reported automatically.
+
 ## Development environment
 
-Requires Python 3.12 or newer and [uv](https://docs.astral.sh/uv/).
+To include optional PostgreSQL support and run the tests:
 
 ```powershell
 uv sync --extra postgres --extra ui
 uv run pytest -q
 ```
 
-`uv.lock` pins dependencies. SQLAlchemy and Alembic handle persistence, pywin32 provides Windows process controls, and Flet powers the desktop interface.
-
-Open the interface:
-
-```powershell
-.venv\Scripts\rcc-ui.exe
-```
+SQLAlchemy and Alembic handle persistence, pywin32 provides Windows process controls, and Flet powers the desktop interface.
 
 The application can register automations, enqueue or start them immediately, process the queue without blocking the window, cancel executions, browse history, and display logs. See the Portuguese [user manual](docs/MANUAL-USUARIO.md) for detailed UI instructions and [Flet versus Python](docs/FLET-INTERFACE.md) for the control and callback mapping.
 
