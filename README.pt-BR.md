@@ -17,7 +17,7 @@
 
 [![Baixar o instalador para Windows](https://img.shields.io/badge/Download-Instalador%20Windows-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)
 
-**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)** · [Ver a versão mais recente](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Versão portátil e checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc3)
+**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)** · [Ver todas as versões](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Versão portátil e checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc3)
 
 Compatível com Windows 10 e 11 de 64 bits. O aplicativo ainda não possui assinatura digital; por isso, o Windows pode exibir um aviso de segurança. Confira o checksum SHA-256 publicado na release antes da instalação.
 

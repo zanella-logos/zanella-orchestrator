@@ -17,7 +17,7 @@
 
 [![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)
 
-**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)** · [View the latest release](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Portable package and checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc3)
+**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Portable package and checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc3)
 
 Compatible with 64-bit Windows 10 and 11. The application is not digitally signed yet, so Windows may display a security warning. Verify the SHA-256 checksum published with the release before installing.
 
