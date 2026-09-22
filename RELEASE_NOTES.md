@@ -1,4 +1,12 @@
-# Zanella Orchestrator Community 0.1.0-rc2
+# Zanella Orchestrator Community 0.1.0-rc3
+
+Esta versão corrige a instalação do gatilho global pelo aplicativo Windows empacotado. O agendador passa a chamar o executável instalado do Zanella Orchestrator em modo de execução sem interface, sem depender de um `rcc.exe` ausente no pacote.
+
+Validação: 48 testes aprovados e 1 ignorado; aplicativo empacotado executou o agendador com banco SQLite isolado e terminou sem erro.
+
+Para atualizar uma instalação RC2, execute o instalador RC3 no mesmo usuário Windows. Depois abra o aplicativo e clique em **Instalar gatilho global** para criar ou atualizar a tarefa do Agendador de Tarefas.
+
+## Histórico: 0.1.0-rc2
 
 Segunda versão candidata pública do Zanella Orchestrator Community, um orquestrador local para automações Windows.
 

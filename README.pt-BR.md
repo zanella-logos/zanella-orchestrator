@@ -11,13 +11,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-0.1.0--rc2-F59E0B)](RELEASE_NOTES.md)
+[![Release](https://img.shields.io/badge/release-0.1.0--rc3-F59E0B)](RELEASE_NOTES.md)
 
 ## Download para Windows
 
-[![Baixar o instalador para Windows](https://img.shields.io/badge/Download-Instalador%20Windows-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)
+[![Baixar o instalador para Windows](https://img.shields.io/badge/Download-Instalador%20Windows-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)
 
-**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)** · [Ver a versão mais recente](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Versão portátil e checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc2)
+**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)** · [Ver a versão mais recente](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Versão portátil e checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc3)
 
 Compatível com Windows 10 e 11 de 64 bits. O aplicativo ainda não possui assinatura digital; por isso, o Windows pode exibir um aviso de segurança. Confira o checksum SHA-256 publicado na release antes da instalação.
 
@@ -128,7 +128,7 @@ No cenário `hang`, configure um timeout curto para validar `timed_out`; configu
 
 ## Versão candidata
 
-A versão `0.1.0-rc2` está pronta para validação externa em outra máquina Windows. Ela inclui instalador, pacote portátil, checksums SHA-256 e [notas da versão](RELEASE_NOTES.md).
+A versão `0.1.0-rc3` está pronta para validação externa em outra máquina Windows. Ela inclui instalador, pacote portátil, checksums SHA-256 e [notas da versão](RELEASE_NOTES.md).
 
 ## Executável Windows
 
@@ -142,7 +142,7 @@ Após autorizar o download oficial do Flutter no primeiro build:
 
 As fontes Python permanecem no pacote porque o Alembic precisa descobrir os arquivos de revisão em `migrations\versions`. O build gera a aplicação em `build\windows`. O instalador oficial é produzido pelo Inno Setup a partir de `installer\Zanella-Orchestrator.iss`.
 
-Versão candidata local validada: `dist\Zanella-Orchestrator-0.1.0-rc2-windows-x64.zip`. O arquivo `dist\SHA256SUMS.txt` permite conferir a integridade do pacote.
+Versão candidata local validada: `dist\Zanella-Orchestrator-0.1.0-rc3-windows-x64.zip`. O arquivo `dist\SHA256SUMS-0.1.0-rc3.txt` permite conferir a integridade do pacote.
 
 ## CLI inicial
 

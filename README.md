@@ -11,13 +11,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-0.1.0--rc2-F59E0B)](RELEASE_NOTES.md)
+[![Release](https://img.shields.io/badge/release-0.1.0--rc3-F59E0B)](RELEASE_NOTES.md)
 
 ## Download for Windows
 
-[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)
 
-**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc2/Zanella-Orchestrator-Setup-0.1.0-rc2-windows-x64.exe)** · [View the latest release](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Portable package and checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc2)
+**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc3/Zanella-Orchestrator-Setup-0.1.0-rc3-windows-x64.exe)** · [View the latest release](https://github.com/zanella-logos/zanella-orchestrator/releases/latest) · [Portable package and checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc3)
 
 Compatible with 64-bit Windows 10 and 11. The application is not digitally signed yet, so Windows may display a security warning. Verify the SHA-256 checksum published with the release before installing.
 
@@ -119,7 +119,7 @@ Use a short timeout with `hang` to validate `timed_out`, or a long timeout follo
 
 ## Release candidate
 
-Version `0.1.0-rc2` is available for external validation on another Windows machine. It includes an installer, portable package, SHA-256 checksums, and [release notes](RELEASE_NOTES.md).
+Version `0.1.0-rc3` is available for external validation on another Windows machine. It includes an installer, portable package, SHA-256 checksums, and [release notes](RELEASE_NOTES.md).
 
 ## Windows executable
 
@@ -131,7 +131,7 @@ The project follows the official `flet build` structure with `main.py` as its en
 
 Python sources remain in the package because Alembic discovers revisions under `migrations\versions`. The build is written to `build\windows`; Inno Setup builds the installer from `installer\Zanella-Orchestrator.iss`.
 
-Locally validated candidate: `dist\Zanella-Orchestrator-0.1.0-rc2-windows-x64.zip`. Verify it with `dist\SHA256SUMS.txt`.
+Locally validated candidate: `dist\Zanella-Orchestrator-0.1.0-rc3-windows-x64.zip`. Verify it with `dist\SHA256SUMS-0.1.0-rc3.txt`.
 
 ## CLI
 

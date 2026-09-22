@@ -148,9 +148,12 @@ def run_scheduler(engine, logs_root: Path, installation_id: str = "default") -> 
 
 
 def scheduler_cli_path() -> Path:
-    candidate = Path(sys.executable).with_name("rcc.exe")
+    if os.environ.get("FLET_APP_STORAGE_DATA"):
+        candidate = Path(__file__).resolve().parents[3] / "Zanella-Orchestrator.exe"
+    else:
+        candidate = Path(sys.executable).with_name("rcc.exe")
     if not candidate.exists():
-        raise ValueError("Executável rcc.exe não encontrado ao lado do Python do projeto.")
+        raise ValueError(f"Executável do agendador não encontrado: {candidate}")
     return candidate
 
 
@@ -159,10 +162,13 @@ def install_windows_task(project_root: Path) -> None:
     runner_path = application_data_dir() / "run-scheduler.vbs"
     vbs_project_root = str(project_root).replace('"', '""')
     vbs_rcc_path = str(rcc_path).replace('"', '""')
+    packaged = rcc_path.name == "Zanella-Orchestrator.exe"
+    command_suffix = "" if packaged else " scheduler"
     runner_path.write_text(
         'Set shell = CreateObject("WScript.Shell")\n'
         f'shell.CurrentDirectory = "{vbs_project_root}"\n'
-        f'exitCode = shell.Run("""{vbs_rcc_path}"" scheduler", 0, True)\n'
+        + ('shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"\n' if packaged else '')
+        + f'exitCode = shell.Run("""{vbs_rcc_path}""{command_suffix}, 0, True)\n'
         'WScript.Quit exitCode\n',
         encoding="utf-8",
     )

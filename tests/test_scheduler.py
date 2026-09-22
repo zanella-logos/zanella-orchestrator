@@ -111,6 +111,29 @@ def test_windows_task_installer_uses_hidden_five_minute_trigger(tmp_path, monkey
     assert "shell.Run" in runner and ", 0, True" in runner
 
 
+def test_packaged_task_runs_app_in_scheduler_mode(tmp_path, monkeypatch):
+    install_root = tmp_path / "Zanella Orchestrator"
+    package_dir = install_root / "app" / "src" / "rpa_control_center"
+    package_dir.mkdir(parents=True)
+    packaged_exe = install_root / "Zanella-Orchestrator.exe"
+    packaged_exe.touch()
+    monkeypatch.setenv("FLET_APP_STORAGE_DATA", str(tmp_path / "data"))
+    monkeypatch.setattr(scheduler_module, "__file__", str(package_dir / "scheduler.py"))
+    monkeypatch.setattr(scheduler_module, "application_data_dir", lambda: tmp_path / "data")
+    monkeypatch.setattr(
+        scheduler_module.subprocess, "run",
+        lambda *_args, **_kwargs: SimpleNamespace(returncode=0, stdout="", stderr=""),
+    )
+    (tmp_path / "data").mkdir()
+
+    scheduler_module.install_windows_task(tmp_path / "project")
+
+    runner = (tmp_path / "data" / "run-scheduler.vbs").read_text(encoding="utf-8")
+    assert str(packaged_exe) in runner
+    assert 'shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"' in runner
+    assert '" scheduler' not in runner
+
+
 def test_remove_windows_task_deletes_task_and_runner(tmp_path, monkeypatch):
     data_dir = tmp_path / "data"
     data_dir.mkdir()
