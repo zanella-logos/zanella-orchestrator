@@ -105,10 +105,11 @@ def test_windows_task_installer_uses_hidden_five_minute_trigger(tmp_path, monkey
     assert ["/SC", "MINUTE", "/MO", "5"] == command[4:8]
     assert "/IT" in command and "/RU" not in command
     assert "wscript.exe //B //NoLogo" in command[command.index("/TR") + 1]
-    runner = (tmp_path / "data" / "run-scheduler.vbs").read_text(encoding="utf-8")
+    runner = (tmp_path / "data" / "run-scheduler.vbs").read_text(encoding="utf-16")
     assert str(rcc_path) in runner
     assert "scheduler" in runner
-    assert "shell.Run" in runner and ", 0, True" in runner
+    assert f'exitCode = shell.Run("""{rcc_path}""" scheduler, 0, True)' in runner
+    assert f'shell.Environment("PROCESS")("RCC_DATA_DIR") = "{tmp_path / "data"}"' in runner
 
 
 def test_packaged_task_runs_app_in_scheduler_mode(tmp_path, monkeypatch):
@@ -117,20 +118,25 @@ def test_packaged_task_runs_app_in_scheduler_mode(tmp_path, monkeypatch):
     package_dir.mkdir(parents=True)
     packaged_exe = install_root / "Zanella-Orchestrator.exe"
     packaged_exe.touch()
-    monkeypatch.setenv("FLET_APP_STORAGE_DATA", str(tmp_path / "data"))
+    data_dir = tmp_path / "Victor César Zanella" / "Zanella Orchestrator" / "data"
+    monkeypatch.setenv("FLET_APP_STORAGE_DATA", str(data_dir))
     monkeypatch.setattr(scheduler_module, "__file__", str(package_dir / "scheduler.py"))
-    monkeypatch.setattr(scheduler_module, "application_data_dir", lambda: tmp_path / "data")
+    monkeypatch.setattr(scheduler_module, "application_data_dir", lambda: data_dir)
     monkeypatch.setattr(
         scheduler_module.subprocess, "run",
         lambda *_args, **_kwargs: SimpleNamespace(returncode=0, stdout="", stderr=""),
     )
-    (tmp_path / "data").mkdir()
+    data_dir.mkdir(parents=True)
 
     scheduler_module.install_windows_task(tmp_path / "project")
 
-    runner = (tmp_path / "data" / "run-scheduler.vbs").read_text(encoding="utf-8")
+    runner_path = data_dir / "run-scheduler.vbs"
+    assert runner_path.read_bytes().startswith(b"\xff\xfe")
+    runner = runner_path.read_text(encoding="utf-16")
     assert str(packaged_exe) in runner
     assert 'shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"' in runner
+    assert f'shell.Environment("PROCESS")("RCC_DATA_DIR") = "{data_dir}"' in runner
+    assert f'exitCode = shell.Run("""{packaged_exe}""", 0, True)' in runner
     assert '" scheduler' not in runner
 
 

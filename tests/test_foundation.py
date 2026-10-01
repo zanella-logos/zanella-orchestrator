@@ -13,9 +13,47 @@ import pytest
 from sqlalchemy import inspect, select
 from sqlalchemy.orm import Session
 
+from rpa_control_center.database import application_data_dir, database_url
 from rpa_control_center.models import Robot, Run
 from rpa_control_center.store import claim_next, make_engine
 from rpa_control_center.windows import InstallationLock, ProcessTree
+
+
+def test_scheduler_uses_explicit_data_dir_for_database_config(tmp_path, monkeypatch):
+    data_dir = tmp_path / "scheduler-data"
+    data_dir.mkdir()
+    (data_dir / "config.toml").write_text(
+        f'[database]\nbackend = "sqlite"\nsqlite_path = "{(data_dir / "configured.db").as_posix()}"\n',
+        encoding="utf-8",
+    )
+    monkeypatch.setenv("RCC_DATA_DIR", str(data_dir))
+    monkeypatch.setenv("FLET_APP_STORAGE_DATA", str(tmp_path / "other-flet-data"))
+
+    assert database_url() == "sqlite:///" + (data_dir / "configured.db").as_posix()
+
+
+def test_packaged_data_migrates_from_legacy_company(tmp_path, monkeypatch):
+    legacy = tmp_path / "roaming" / "Victor César Zanella" / "Zanella Orchestrator" / "data"
+    legacy.mkdir(parents=True)
+    old_db = legacy / "control_center.db"
+    import sqlite3
+    with sqlite3.connect(old_db) as connection:
+        connection.execute("CREATE TABLE marker (value TEXT)")
+        connection.execute("INSERT INTO marker VALUES ('preserved')")
+    (legacy / "config.toml").write_text('[database]\nbackend = "sqlite"\n', encoding="utf-8")
+    (legacy / "logs").mkdir()
+    (legacy / "logs" / "run.log").write_text("old log", encoding="utf-8")
+    new_data = tmp_path / "roaming" / "Zanella" / "Zanella Orchestrator" / "data"
+    monkeypatch.setenv("APPDATA", str(tmp_path / "roaming"))
+    monkeypatch.setenv("FLET_APP_STORAGE_DATA", str(new_data))
+    monkeypatch.delenv("RCC_DATA_DIR", raising=False)
+
+    assert application_data_dir() == new_data
+    with sqlite3.connect(new_data / "control_center.db") as connection:
+        assert connection.execute("SELECT value FROM marker").fetchone() == ("preserved",)
+    assert (new_data / "logs" / "run.log").read_text(encoding="utf-8") == "old log"
+    assert (new_data / "config.toml").exists()
+    assert old_db.exists()
 
 
 def claim_worker(url, barrier, output):

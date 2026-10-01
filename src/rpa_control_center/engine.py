@@ -67,6 +67,8 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
     result_path = run_dir / "result.json"
     command = build_command(executor_type, launcher, target, list(map(str, config.get("arguments", []))))
     environment = os.environ.copy()
+    environment.pop("PYTHONHOME", None)
+    environment.pop("PYTHONPATH", None)
     environment["PYTHONUNBUFFERED"] = "1"
     environment["PYTHONUTF8"] = "1"
     environment["RCC_RUN_ID"] = run_id

@@ -1,4 +1,12 @@
-# Zanella Orchestrator Community 0.1.0-rc3
+# Zanella Orchestrator Community 0.1.0-rc4
+
+A RC4 corrige a execução de robôs Python externos e o disparo automático no Windows. O agendador agora inicia sem abrir uma janela extra do Zanella, e a pasta de dados passa a ser `%APPDATA%\Zanella\Zanella Orchestrator\data`.
+
+Os dados da pasta antiga são copiados na primeira abertura, sem apagá-la. Para atualizar, feche o Zanella e execute `Zanella-Orchestrator-Setup-0.1.0-rc4-windows-x64.exe` no mesmo usuário Windows. Robôs Python continuam precisando de um Python e das dependências do próprio robô instalados nessa máquina.
+
+Validação: 51 testes aprovados, 1 ignorado; disparo automático de robô Python confirmado em outra máquina Windows com a RC4.
+
+## Histórico: 0.1.0-rc3
 
 Esta versão corrige a instalação do gatilho global pelo aplicativo Windows empacotado. O agendador passa a chamar o executável instalado do Zanella Orchestrator em modo de execução sem interface, sem depender de um `rcc.exe` ausente no pacote.
 

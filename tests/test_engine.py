@@ -61,6 +61,20 @@ os.replace(path + '.tmp', path)
     engine.dispose()
 
 
+def test_python_robot_does_not_inherit_packaged_python_paths(tmp_path, monkeypatch):
+    packaged_runtime = tmp_path / "packaged-runtime"
+    packaged_runtime.mkdir()
+    monkeypatch.setenv("PYTHONHOME", str(packaged_runtime))
+    monkeypatch.setenv("PYTHONPATH", str(packaged_runtime))
+    engine, run_id = create_run(tmp_path, "print('ZO_TEST_OK')")
+
+    assert execute_run(engine, run_id, tmp_path / "logs") == "completed"
+    run = get_run(engine, run_id)
+    assert "ZO_TEST_OK" in Path(run.stdout_path).read_text(encoding="utf-8")
+    assert Path(run.stderr_path).read_text(encoding="utf-8") == ""
+    engine.dispose()
+
+
 def test_business_error_is_distinct_from_technical_success(tmp_path):
     source = """
 import json, os

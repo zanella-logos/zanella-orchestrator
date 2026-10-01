@@ -36,11 +36,13 @@ addopts = "--basetemp=.test-tmp"
 [tool.flet]
 product = "Zanella Orchestrator"
 artifact = "Zanella-Orchestrator"
+company = "Zanella"
 compile_app = false
 
 [tool.flet.app]
 path = "."
 module = "main"
+hide_window_on_start = true
 exclude = [
   ".git",
   ".github",

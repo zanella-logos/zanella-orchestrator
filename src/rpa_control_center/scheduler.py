@@ -159,18 +159,21 @@ def scheduler_cli_path() -> Path:
 
 def install_windows_task(project_root: Path) -> None:
     rcc_path = scheduler_cli_path()
-    runner_path = application_data_dir() / "run-scheduler.vbs"
+    data_dir = application_data_dir()
+    runner_path = data_dir / "run-scheduler.vbs"
     vbs_project_root = str(project_root).replace('"', '""')
     vbs_rcc_path = str(rcc_path).replace('"', '""')
+    vbs_data_dir = str(data_dir).replace('"', '""')
     packaged = rcc_path.name == "Zanella-Orchestrator.exe"
     command_suffix = "" if packaged else " scheduler"
     runner_path.write_text(
         'Set shell = CreateObject("WScript.Shell")\n'
         f'shell.CurrentDirectory = "{vbs_project_root}"\n'
+        + f'shell.Environment("PROCESS")("RCC_DATA_DIR") = "{vbs_data_dir}"\n'
         + ('shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"\n' if packaged else '')
-        + f'exitCode = shell.Run("""{vbs_rcc_path}""{command_suffix}, 0, True)\n'
+        + f'exitCode = shell.Run("""{vbs_rcc_path}"""{command_suffix}, 0, True)\n'
         'WScript.Quit exitCode\n',
-        encoding="utf-8",
+        encoding="utf-16",
     )
     command = f'wscript.exe //B //NoLogo "{runner_path}"'
     result = subprocess.run(

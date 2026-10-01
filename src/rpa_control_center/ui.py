@@ -1478,6 +1478,8 @@ async def main(page: ft.Page) -> None:
     app = ControlCenterUI(page, engine)
     app.refresh(update_page=False)
     page.add(app.build())
+    page.window.visible = True
+    page.window.update()
 
 
 def run() -> None:
