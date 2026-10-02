@@ -83,7 +83,8 @@ def test_due_schedule_creates_only_one_run(tmp_path):
     engine.dispose()
 
 
-def test_windows_task_installer_uses_hidden_five_minute_trigger(tmp_path, monkeypatch):
+@pytest.mark.parametrize("interval,expected", [(1, "1"), (3, "3"), (5, "5"), ("7", "7"), ("07", "7"), (59, "59")])
+def test_windows_task_installer_uses_selected_interval(tmp_path, monkeypatch, interval, expected):
     rcc_path = tmp_path / "Scripts" / "rcc.exe"
     rcc_path.parent.mkdir()
     rcc_path.touch()
@@ -98,11 +99,12 @@ def test_windows_task_installer_uses_hidden_five_minute_trigger(tmp_path, monkey
     monkeypatch.setattr(scheduler_module.subprocess, "run", fake_run)
     (tmp_path / "data").mkdir()
 
-    scheduler_module.install_windows_task(tmp_path / "project")
+    scheduler_module.install_windows_task(tmp_path / "project", interval)
 
     command = captured["command"]
     assert command[:2] == ["schtasks.exe", "/Create"]
-    assert ["/SC", "MINUTE", "/MO", "5"] == command[4:8]
+    assert ["/SC", "MINUTE", "/MO", expected] == command[4:8]
+    assert scheduler_module.saved_task_interval(True) == int(expected)
     assert "/IT" in command and "/RU" not in command
     assert "wscript.exe //B //NoLogo" in command[command.index("/TR") + 1]
     runner = (tmp_path / "data" / "run-scheduler.vbs").read_text(encoding="utf-16")

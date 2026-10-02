@@ -1,4 +1,21 @@
-# Zanella Orchestrator Community 0.1.0-rc4
+# Zanella Orchestrator Community 0.1.0-rc5
+
+A RC5 mantém as correções da RC4 e melhora o agendamento e a fila de execução.
+
+- Fila contínua: ao finalizar um robô, o próximo começa sem aguardar outro disparo do Windows. Inclui itens manuais e agendamentos vencidos, com execução sequencial FIFO e proteção contra execuções paralelas por executores concorrentes.
+- Intervalo do gatilho: padrão de 1 minuto, opções de 3 e 5 minutos e personalizado de 1 a 59. Valores como 7 e 07 representam sete minutos.
+- Atualizar gatilho fica disponível apenas quando o intervalo válido difere do instalado.
+- Timeout padrão da Home: 180 segundos (3 minutos), incluindo após cadastrar uma automação.
+- Campo personalizado permite apagar todos os dígitos com Backspace; mensagens usam Zanella Orchestrator.
+
+Para atualizar, feche o aplicativo e execute `Zanella-Orchestrator-Setup-0.1.0-rc5-windows-x64.exe` no mesmo usuário Windows. Cadastros existentes são preservados. Para alterar o intervalo de um gatilho já instalado, selecione o novo valor e clique em **Atualizar gatilho global**. A instalação não muda automaticamente o intervalo anterior nem o timeout dos robôs já cadastrados.
+
+Validação: 74 testes aprovados, 1 teste PostgreSQL ignorado; executável empacotado validado com fila manual e agendada no mesmo ciclo, e disparo concorrente sem execução paralela.
+
+Runtimes e dependências dos robôs precisam estar instalados na máquina. Automações de desktop e navegador exigem sessão Windows interativa. Instalador sem assinatura digital nesta versão candidata.
+
+## Histórico: 0.1.0-rc4
+
 
 A RC4 corrige a execução de robôs Python externos e o disparo automático no Windows. O agendador agora inicia sem abrir uma janela extra do Zanella, e a pasta de dados passa a ser `%APPDATA%\Zanella\Zanella Orchestrator\data`.
 

@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta
 import os
+import re
 from pathlib import Path
 import subprocess
 import sys
@@ -13,14 +14,13 @@ from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from .database import application_data_dir
-from .engine import run_engine
 from .models import Robot, Run, Schedule
 from .service import robot_snapshot
-from .windows import InstallationLock
+from .windows import InstallationBusy
 
 
 TASK_NAME = "RPA Control Center Scheduler"
-TASK_INTERVAL_MINUTES = 5
+TASK_INTERVAL_MINUTES = 1
 WEEKDAYS = ("Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo")
 
 
@@ -141,9 +141,18 @@ def enqueue_due_schedules(engine, now: float | None = None) -> int:
 
 
 def run_scheduler(engine, logs_root: Path, installation_id: str = "default") -> tuple[int, int]:
-    with InstallationLock(f"{installation_id}-scheduler"):
-        scheduled = enqueue_due_schedules(engine)
-    processed = run_engine(engine, logs_root)
+    from .engine import run_engine
+
+    scheduled = 0
+
+    def record_scheduled(count: int) -> None:
+        nonlocal scheduled
+        scheduled += count
+
+    try:
+        processed = run_engine(engine, logs_root, installation_id, on_scheduled=record_scheduled)
+    except InstallationBusy:
+        return 0, 0
     return scheduled, processed
 
 
@@ -157,7 +166,22 @@ def scheduler_cli_path() -> Path:
     return candidate
 
 
-def install_windows_task(project_root: Path) -> None:
+def parse_task_interval(value: str | int) -> int:
+    text = str(value)
+    if not re.fullmatch(r"[0-9]{1,2}", text) or not 1 <= int(text) <= 59:
+        raise ValueError("Informe um intervalo inteiro de 1 a 59 minutos, usando somente dígitos.")
+    return int(text)
+
+
+def saved_task_interval(installed: bool = False) -> int:
+    path = application_data_dir() / "scheduler-interval.txt"
+    if path.exists():
+        return parse_task_interval(path.read_text(encoding="utf-8"))
+    return 5 if installed else TASK_INTERVAL_MINUTES
+
+
+def install_windows_task(project_root: Path, interval_minutes: str | int = TASK_INTERVAL_MINUTES) -> None:
+    interval_minutes = parse_task_interval(interval_minutes)
     rcc_path = scheduler_cli_path()
     data_dir = application_data_dir()
     runner_path = data_dir / "run-scheduler.vbs"
@@ -179,13 +203,14 @@ def install_windows_task(project_root: Path) -> None:
     result = subprocess.run(
         [
             "schtasks.exe", "/Create", "/TN", TASK_NAME, "/SC", "MINUTE",
-            "/MO", str(TASK_INTERVAL_MINUTES),
+            "/MO", str(interval_minutes),
             "/TR", command, "/IT", "/F",
         ],
         capture_output=True, text=True, encoding="utf-8", errors="replace",
     )
     if result.returncode:
         raise ValueError((result.stderr or result.stdout).strip() or "Falha ao criar tarefa do Windows.")
+    (data_dir / "scheduler-interval.txt").write_text(str(interval_minutes), encoding="utf-8")
 
 
 def remove_windows_task() -> None:

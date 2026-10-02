@@ -18,6 +18,7 @@ from .scheduler import (
     TASK_NAME, WEEKDAYS, add_schedule, install_windows_task, list_schedules,
     open_windows_task_scheduler, remove_schedule, remove_windows_task,
     set_schedule_active, weekday_mask, weekdays_from_mask, windows_task_installed,
+    parse_task_interval, saved_task_interval,
 )
 from .service import (
     add_robot, cancel, enqueue, list_robots, list_runs, remove_robot, remove_run,
@@ -147,7 +148,7 @@ class ControlCenterUI:
         self.arguments = ft.TextField(
             label="Argumentos — um por linha", multiline=True, min_lines=2, max_lines=5
         )
-        self.timeout = ft.TextField(label="Timeout em segundos", value="3600", width=180)
+        self.timeout = ft.TextField(label="Timeout em segundos", value="180", width=180)
         self.save_button = ft.Button("Cadastrar", icon=ft.Icons.ADD, on_click=self.save_robot)
         self.cancel_edit_button = ft.Button(
             "Cancelar edição", icon=ft.Icons.CLOSE, visible=False, on_click=self.cancel_edit
@@ -251,11 +252,27 @@ class ControlCenterUI:
             data_row_min_height=48, data_row_max_height=56,
         )
         task_installed = windows_task_installed()
-        self.task_status = ft.Text(self.windows_task_status(task_installed))
+        self.task_installed = task_installed
+        self.task_interval_minutes = saved_task_interval(task_installed)
+        self.task_interval = ft.Dropdown(
+            label="Intervalo do gatilho", width=210,
+            value=str(self.task_interval_minutes) if self.task_interval_minutes in (1, 3, 5) else "custom",
+            options=[ft.dropdown.Option("1", "1 minuto (padrão)"),
+                     ft.dropdown.Option("3", "3 minutos"), ft.dropdown.Option("5", "5 minutos"),
+                     ft.dropdown.Option("custom", "Personalizado")],
+            on_select=self.change_task_interval,
+        )
+        self.task_custom_interval = ft.TextField(
+            label="Minutos (1 a 59)", value=str(self.task_interval_minutes), width=160,
+            max_length=2, visible=self.task_interval.value == "custom",
+            input_filter=ft.NumbersOnlyInputFilter(),
+            on_change=self.change_task_interval,
+        )
+        self.task_status = ft.Text(self.windows_task_status(task_installed, self.task_interval_minutes))
         self.install_task_button = ft.Button(
-            "Instalar gatilho global", icon=ft.Icons.SCHEDULE,
+            "Atualizar gatilho global" if task_installed else "Instalar gatilho global", icon=ft.Icons.SCHEDULE,
             disabled=task_installed,
-            tooltip="Necessário somente uma vez para todos os agendamentos",
+            tooltip="Aplica o intervalo selecionado à tarefa de todos os agendamentos",
             on_click=self.install_windows_task_click,
         )
         self.remove_task_button = ft.Button(
@@ -529,7 +546,10 @@ class ControlCenterUI:
                             ft.Text("Agendamentos", size=20, weight=ft.FontWeight.BOLD),
                             self.task_status,
                         ], expand=True),
-                        self.install_task_button,
+                        ft.Column(controls=[
+                            self.install_task_button,
+                            ft.Row(controls=[self.task_interval, self.task_custom_interval], wrap=True),
+                        ]),
                         self.edit_task_button,
                         self.remove_task_button,
                     ],
@@ -638,16 +658,28 @@ class ControlCenterUI:
         self.page.update()
 
     @staticmethod
-    def windows_task_status(installed: bool) -> str:
+    def windows_task_status(installed: bool, interval_minutes: int = 1) -> str:
         if installed:
-            return "Gatilho global instalado. Verifica todos os agendamentos a cada 5 minutos."
+            unit = "minuto" if interval_minutes == 1 else "minutos"
+            return f"Gatilho global instalado. Verifica os agendamentos a cada {interval_minutes} {unit}."
         return "Gatilho global não instalado. Instale uma única vez para ativar os horários."
 
     def update_windows_task_controls(self, installed: bool) -> None:
-        self.task_status.value = self.windows_task_status(installed)
-        self.install_task_button.disabled = installed
+        self.task_installed = installed
+        self.task_status.value = self.windows_task_status(installed, self.task_interval_minutes)
+        self.install_task_button.content = "Atualizar gatilho global" if installed else "Instalar gatilho global"
         self.edit_task_button.disabled = not installed
         self.remove_task_button.disabled = not installed
+        self.update_task_interval_button()
+
+    def update_task_interval_button(self) -> None:
+        value = self.task_custom_interval.value if self.task_interval.value == "custom" else self.task_interval.value
+        try:
+            interval = parse_task_interval(value)
+        except ValueError:
+            self.install_task_button.disabled = True
+        else:
+            self.install_task_button.disabled = self.task_installed and interval == self.task_interval_minutes
 
     def change_schedule_frequency(self, _=None) -> None:
         self.schedule_weekday.disabled = self.schedule_frequency.value != "weekly"
@@ -1021,11 +1053,19 @@ class ControlCenterUI:
                 self.page.update()
         return handler
 
+    def change_task_interval(self, _=None) -> None:
+        self.task_custom_interval.visible = self.task_interval.value == "custom"
+        self.update_task_interval_button()
+        self.page.update()
+
     async def install_windows_task_click(self, _=None) -> None:
         try:
-            await asyncio.to_thread(install_windows_task, PROJECT_ROOT)
+            value = self.task_custom_interval.value if self.task_interval.value == "custom" else self.task_interval.value
+            interval = parse_task_interval(value)
+            await asyncio.to_thread(install_windows_task, PROJECT_ROOT, interval)
+            self.task_interval_minutes = interval
             self.update_windows_task_controls(True)
-            self.set_status("Gatilho global instalado. Todos os agendamentos usarão esta única tarefa.")
+            self.set_status(f"Gatilho global atualizado: intervalo de {interval} minuto(s).")
         except Exception as error:
             self.set_status(str(error), error=True)
         self.page.update()
@@ -1045,7 +1085,7 @@ class ControlCenterUI:
             modal=True,
             title=ft.Text("Remover gatilho global?"),
             content=ft.Text(
-                "A única tarefa do RCC será removida do Agendador do Windows. "
+                "A tarefa do Zanella Orchestrator será removida do Agendador do Windows. "
                 "Os agendamentos continuarão salvos, mas não executarão automaticamente."
             ),
             actions=[
@@ -1153,7 +1193,7 @@ class ControlCenterUI:
         self.name.value = ""
         self.target.value = ""
         self.arguments.value = ""
-        self.timeout.value = "3600"
+        self.timeout.value = "180"
         self.executor_type.value = "python"
         self.launcher.disabled = False
         self.launcher.value = default_launcher("python")

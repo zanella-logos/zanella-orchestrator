@@ -12,6 +12,10 @@ import win32process
 import win32con
 
 
+class InstallationBusy(RuntimeError):
+    """Another worker already owns the installation mutex."""
+
+
 class InstallationLock:
     """Cross-session mutex. All entry points must use the same installation ID."""
 
@@ -23,7 +27,7 @@ class InstallationLock:
         result = win32event.WaitForSingleObject(self.handle, 0)
         if result not in (win32event.WAIT_OBJECT_0, win32event.WAIT_ABANDONED):
             self.handle.Close()
-            raise RuntimeError("Another engine owns this installation")
+            raise InstallationBusy("Another engine owns this installation")
         self.owned = True
         return self
 

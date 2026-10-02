@@ -11,6 +11,7 @@ from sqlalchemy.orm import Session
 from .models import Run
 from .executors import build_command, validate_command_paths
 from .store import claim_next, claim_specific
+from .scheduler import enqueue_due_schedules
 from .windows import InstallationLock, ProcessTree
 
 
@@ -114,12 +115,18 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
     return final_state
 
 
-def run_engine(engine, logs_root: Path, installation_id: str = "default") -> int:
+def run_engine(engine, logs_root: Path, installation_id: str = "default", *, on_scheduled=None) -> int:
     """Process the full queue sequentially (used by 'Executar fila')."""
     completed = 0
     with InstallationLock(installation_id):
         reconcile(engine)
-        while run_id := claim_next(engine):
+        while True:
+            scheduled = enqueue_due_schedules(engine)
+            if on_scheduled is not None:
+                on_scheduled(scheduled)
+            run_id = claim_next(engine)
+            if run_id is None:
+                break
             execute_run(engine, run_id, logs_root)
             completed += 1
     return completed

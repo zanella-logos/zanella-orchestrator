@@ -223,18 +223,61 @@ def test_schedule_and_windows_trigger_buttons(ui, tmp_path, monkeypatch):
     assert list_schedules(ui.engine) == []
 
     calls = []
-    monkeypatch.setattr(ui_module, "install_windows_task", lambda root: calls.append(("install", root)))
+    monkeypatch.setattr(ui_module, "install_windows_task", lambda root, interval: calls.append(("install", interval)))
     monkeypatch.setattr(ui_module, "remove_windows_task", lambda: calls.append(("remove", None)))
     monkeypatch.setattr(ui_module, "open_windows_task_scheduler", lambda: calls.append(("open", None)))
 
     run(ui.install_windows_task_click())
     assert ui.install_task_button.disabled
+    assert calls[0] == ("install", 1)
+    assert ui.install_task_button.content == "Atualizar gatilho global"
     run(ui.open_windows_task_scheduler_click())
     run(ui.confirm_remove_windows_task())
     run(dialog_action(ui, "Remover gatilho")())
     assert [call[0] for call in calls] == ["install", "open", "remove"]
     assert ui.remove_task_button.disabled
     assert not ui.install_task_button.disabled
+
+
+def test_custom_trigger_validates_and_normalizes_interval(ui, monkeypatch):
+    calls = []
+    monkeypatch.setattr(ui_module, "install_windows_task", lambda root, interval: calls.append(interval))
+    ui.task_interval.value = "custom"
+    ui.change_task_interval()
+    assert ui.task_custom_interval.visible
+    for value in ("0", "60", "-7", "7.0", "7,0", "abc"):
+        ui.task_custom_interval.value = value
+        run(ui.install_windows_task_click())
+    assert calls == []
+    for value in ("7", "07"):
+        ui.task_custom_interval.value = value
+        run(ui.install_windows_task_click())
+    assert calls == [7, 7]
+    assert "7 minutos" in ui.task_status.value
+
+
+def test_trigger_update_only_when_valid_interval_changes(ui):
+    ui.task_interval_minutes = 1
+    ui.update_windows_task_controls(True)
+    assert ui.install_task_button.disabled
+    for selected in ("3", "5"):
+        ui.task_interval.value = selected
+        ui.change_task_interval()
+        assert not ui.install_task_button.disabled
+    ui.task_interval.value = "custom"
+    for value, disabled in [("1", True), ("01", True), ("", True), ("7", False), ("07", False), ("0", True), ("60", True)]:
+        ui.task_custom_interval.value = value
+        ui.change_task_interval()
+        assert ui.install_task_button.disabled == disabled
+        assert ui.task_custom_interval.value == value
+    assert ui.task_custom_interval.input_filter.regex_string == r"^[0-9]*$"
+
+
+def test_home_timeout_default_and_public_trigger_message(ui):
+    assert ui.timeout.value == "180"
+    run(ui.confirm_remove_windows_task())
+    assert "Zanella Orchestrator" in ui.page.dialog.content.value
+    assert "RCC" not in ui.page.dialog.content.value
 
 
 def test_maintenance_and_bulk_action_buttons(ui, tmp_path, monkeypatch):
