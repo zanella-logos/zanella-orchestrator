@@ -22,7 +22,8 @@ def parser() -> argparse.ArgumentParser:
     add.add_argument("--type", choices=EXECUTOR_TYPES, default="python")
     add.add_argument("--executable", "--python", dest="executable", default=sys.executable)
     add.add_argument("--cwd", default=".")
-    add.add_argument("--timeout", type=float, default=3600)
+    add.add_argument("--max-execution-seconds", "--timeout", dest="timeout", type=float, default=None,
+                     help="Optional total execution limit in seconds; omitted means unlimited, not stall detection")
     add.add_argument("arguments", nargs="*")
     queue = commands.add_parser("enqueue")
     queue.add_argument("robot_id")
@@ -55,7 +56,7 @@ def main() -> None:
         elif args.command == "runs":
             runs, _ = list_runs(engine)
             for run in runs:
-                print(run.id, run.state, run.business_result, run.exit_code)
+                print(run.id, run.state, run.exit_code)
         elif args.command == "engine":
             print(f"Processed {run_engine(engine, application_data_dir() / 'logs')} run(s)")
         elif args.command == "scheduler":

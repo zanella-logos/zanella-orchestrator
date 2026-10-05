@@ -1,6 +1,7 @@
 """Robot registration, queueing, cancellation, and queries."""
 
 from pathlib import Path
+import math
 import shutil
 import time
 
@@ -22,7 +23,16 @@ def robot_snapshot(robot: Robot) -> dict:
     }
 
 
-def add_robot(engine, name, script, interpreter, cwd, arguments, timeout, executor_type="python") -> str:
+def validate_execution_limit(value: float | None) -> float | None:
+    if value is None:
+        return None
+    if isinstance(value, bool) or not isinstance(value, (int, float)) or not math.isfinite(value) or value <= 0:
+        raise ValueError("Tempo máximo de execução deve ser positivo e finito, ou sem limite.")
+    return float(value)
+
+
+def add_robot(engine, name, script, interpreter, cwd, arguments, timeout=None, executor_type="python") -> str:
+    timeout = validate_execution_limit(timeout)
     with Session(engine) as session, session.begin():
         robot = Robot(
             name=name, executor_type=executor_type, script=script, interpreter=interpreter, cwd=cwd,
@@ -36,6 +46,7 @@ def add_robot(engine, name, script, interpreter, cwd, arguments, timeout, execut
 def update_robot(
     engine, robot_id, name, script, interpreter, cwd, arguments, timeout, executor_type="python"
 ) -> None:
+    timeout = validate_execution_limit(timeout)
     active_states = {"queued", "starting", "running", "cancelling"}
     with Session(engine) as session, session.begin():
         robot = session.get(Robot, robot_id)

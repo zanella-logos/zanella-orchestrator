@@ -118,7 +118,7 @@ def test_migration_and_concurrent_claim(tmp_path, monkeypatch, backend):
     command.upgrade(config, "head")
     engine = make_engine(url)
     with Session(engine) as session, session.begin():
-        robot = Robot(name="Fictício", script="demo.py", interpreter=sys.executable, cwd=str(tmp_path))
+        robot = Robot(name="Fictício", script="demo.py", interpreter=sys.executable, cwd=str(tmp_path), timeout=3600)
         session.add(robot)
         session.flush()
         run = Run(robot_id=robot.id, configuration={"name": robot.name})

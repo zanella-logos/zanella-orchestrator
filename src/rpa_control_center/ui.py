@@ -5,6 +5,7 @@ from datetime import datetime
 from pathlib import Path
 import shutil
 import sys
+import uuid
 
 import flet as ft
 
@@ -12,7 +13,7 @@ from .database import application_data_dir, database_url, upgrade_database
 from .engine import run_engine, run_engine_direct
 from .executors import EXECUTOR_TYPES, validate_command_paths
 from .maintenance import (
-    backup_sqlite, export_robots, import_robots, purge_old_runs, restore_sqlite,
+    backup_sqlite, export_robots, import_robots, purge_old_runs, restore_sqlite, remove_execution_limits,
 )
 from .scheduler import (
     TASK_NAME, WEEKDAYS, add_schedule, install_windows_task, list_schedules,
@@ -148,7 +149,10 @@ class ControlCenterUI:
         self.arguments = ft.TextField(
             label="Argumentos — um por linha", multiline=True, min_lines=2, max_lines=5
         )
-        self.timeout = ft.TextField(label="Timeout em segundos", value="180", width=180)
+        self.no_execution_limit = ft.Checkbox(label="Sem limite", value=True, on_change=self.change_execution_limit)
+        self.timeout = ft.TextField(
+            label="Tempo máximo de execução (segundos)", value="", disabled=True, width=300,
+        )
         self.save_button = ft.Button("Cadastrar", icon=ft.Icons.ADD, on_click=self.save_robot)
         self.cancel_edit_button = ft.Button(
             "Cancelar edição", icon=ft.Icons.CLOSE, visible=False, on_click=self.cancel_edit
@@ -179,30 +183,15 @@ class ControlCenterUI:
             options=[
                 ft.DropdownOption(key="", text="Todos"),
                 ft.DropdownOption(key="queued", text="Na Fila"),
-                ft.DropdownOption(key="starting", text="Iniciando"),
                 ft.DropdownOption(key="running", text="Rodando"),
-                ft.DropdownOption(key="cancelling", text="Cancelando"),
                 ft.DropdownOption(key="completed", text="Concluído"),
                 ft.DropdownOption(key="failed", text="Falha"),
                 ft.DropdownOption(key="cancelled", text="Cancelado"),
-                ft.DropdownOption(key="timed_out", text="Timeout"),
+                ft.DropdownOption(key="timed_out", text="Tempo excedido"),
             ],
             value="",
             height=40,
-            width=130,
-            on_select=self.on_filter_change,
-        )
-        self.run_business_filter = ft.Dropdown(
-            label="Negócio",
-            options=[
-                ft.DropdownOption(key="", text="Todos"),
-                ft.DropdownOption(key="success", text="Sucesso"),
-                ft.DropdownOption(key="business_error", text="Erro de Negócio"),
-                ft.DropdownOption(key="not_reported", text="Não Reportado"),
-            ],
-            value="",
-            height=40,
-            width=150,
+            width=160,
             on_select=self.on_filter_change,
         )
         self.btn_clear_filters = ft.IconButton(
@@ -376,6 +365,7 @@ class ControlCenterUI:
                                     ),
                                     self.arguments,
                                     ft.Row(controls=[
+                                         self.no_execution_limit,
                                         self.timeout,
                                         self.cancel_edit_button,
                                         self.save_button,
@@ -445,7 +435,6 @@ class ControlCenterUI:
                     controls=[
                         self.run_search,
                         self.run_state_filter,
-                        self.run_business_filter,
                         self.btn_clear_filters,
                     ],
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
@@ -513,12 +502,17 @@ class ControlCenterUI:
                 ft.Text(
                     "Limpe históricos antigos, transporte cadastros e proteja o banco SQLite local."
                 ),
+                ft.Text(
+                    "Atualizações preservam limites existentes. Para desativá-los também na fila, "
+                    "use Remover limites de execução. Sem limite não detecta travamentos.", size=12,
+                ),
                 ft.Row(
                     controls=[
                         self.retention_days,
                         ft.Button("Limpar antigos", icon=ft.Icons.AUTO_DELETE, on_click=self.confirm_purge_old_runs),
                         ft.Button("Exportar cadastros", icon=ft.Icons.FILE_UPLOAD, on_click=self.export_robots_click),
                         ft.Button("Importar cadastros", icon=ft.Icons.FILE_DOWNLOAD, on_click=self.import_robots_click),
+                        ft.Button("Remover limites de execução", on_click=self.confirm_remove_execution_limits),
                         ft.Button(
                             "Backup SQLite", icon=ft.Icons.BACKUP, disabled=sqlite_only,
                             tooltip="Disponível apenas quando o banco ativo é SQLite",
@@ -695,7 +689,6 @@ class ControlCenterUI:
         self.robot_search.value = ""
         self.run_search.value = ""
         self.run_state_filter.value = ""
-        self.run_business_filter.value = ""
         self.history_page = 1
         self.refresh()
 
@@ -714,7 +707,6 @@ class ControlCenterUI:
         robot_term = (self.robot_search.value or "").strip()
         run_term = (self.run_search.value or "").strip()
         state_val = self.run_state_filter.value or None
-        bus_val = self.run_business_filter.value or None
 
         offset = (self.history_page - 1) * self.history_limit
 
@@ -737,7 +729,6 @@ class ControlCenterUI:
             limit=self.history_limit,
             offset=offset,
             state=state_val,
-            business_result=bus_val,
             search=run_term if run_term else None
         )
         self.history_total = total
@@ -749,7 +740,6 @@ class ControlCenterUI:
                 limit=self.history_limit,
                 offset=(self.history_page - 1) * self.history_limit,
                 state=state_val,
-                business_result=bus_val,
                 search=run_term if run_term else None,
             )
 
@@ -835,7 +825,6 @@ class ControlCenterUI:
             ft.DataColumn(label=ft.Text("Início")),
             ft.DataColumn(label=ft.Text("Automação")),
             ft.DataColumn(label=ft.Text("Estado")),
-            ft.DataColumn(label=ft.Text("Negócio")),
             ft.DataColumn(label=ft.Text("Saída")),
             ft.DataColumn(label=ft.Text("Ações")),
         ]
@@ -844,7 +833,6 @@ class ControlCenterUI:
                 ft.DataCell(ft.Text(format_time(run.started_at or run.created_at))),
                 ft.DataCell(ft.Text(run.configuration.get("name", "Desconhecido"), weight=ft.FontWeight.W_500)),
                 ft.DataCell(status_badge(run.state)),
-                ft.DataCell(status_badge(run.business_result)),
                 ft.DataCell(ft.Text("—" if run.exit_code is None else str(run.exit_code))),
                 ft.DataCell(self.run_actions(run)),
             ])
@@ -1104,6 +1092,37 @@ class ControlCenterUI:
             self.set_status(str(error), error=True)
         self.page.update()
 
+    def change_execution_limit(self, _=None) -> None:
+        self.timeout.disabled = bool(self.no_execution_limit.value)
+        self.page.update()
+
+    async def confirm_remove_execution_limits(self, _=None) -> None:
+        def on_confirm(_=None):
+            self.page.pop_dialog()
+            try:
+                path = application_data_dir() / "backups" / ("limites-rc6-" + uuid.uuid4().hex)
+                robots, queued, backup = remove_execution_limits(self.engine, path)
+                self.reset_form()
+                self.set_status(f"Sem limite: {robots} cadastro(s), {queued} item(ns) na fila. Backup: {backup}")
+                self.refresh()
+            except Exception as error:
+                self.set_status(str(error), error=True)
+                self.page.update()
+
+        self.page.show_dialog(ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Remover todos os limites de execução?"),
+            content=ft.Text(
+                "Os limites dos cadastros e dos itens na fila serão removidos após um backup. "
+                "O histórico será preservado. Um robô travado poderá segurar a fila até ser cancelado. "
+                "A operação não é permitida enquanto um robô estiver executando."
+            ),
+            actions=[
+                ft.TextButton("Cancelar", on_click=lambda _: self.page.pop_dialog()),
+                ft.TextButton("Remover limites", on_click=on_confirm),
+            ],
+        ))
+
     async def export_robots_click(self, _=None) -> None:
         stamp = datetime.now().strftime("%Y%m%d-%H%M%S")
         path = await self._pick_save_file(
@@ -1193,7 +1212,9 @@ class ControlCenterUI:
         self.name.value = ""
         self.target.value = ""
         self.arguments.value = ""
-        self.timeout.value = "180"
+        self.no_execution_limit.value = True
+        self.timeout.value = ""
+        self.timeout.disabled = True
         self.executor_type.value = "python"
         self.launcher.disabled = False
         self.launcher.value = default_launcher("python")
@@ -1216,9 +1237,7 @@ class ControlCenterUI:
                 raise ValueError("Informe o nome")
             if error := validate_command_paths(executor_type, launcher, target, cwd):
                 raise ValueError(error)
-            timeout = float(self.timeout.value)
-            if timeout <= 0:
-                raise ValueError("Timeout deve ser positivo")
+            timeout = None if self.no_execution_limit.value else float(self.timeout.value)
             values = (
                 self.name.value.strip(), target, launcher, cwd,
                 parse_arguments(self.arguments.value), timeout, executor_type,
@@ -1256,7 +1275,9 @@ class ControlCenterUI:
             self.launcher.disabled = snapshot["executor_type"] == "executable"
             self.cwd.value = snapshot["cwd"]
             self.arguments.value = "\n".join(map(str, snapshot["arguments"]))
-            self.timeout.value = str(snapshot["timeout"])
+            self.no_execution_limit.value = snapshot["timeout"] is None
+            self.timeout.disabled = self.no_execution_limit.value
+            self.timeout.value = "" if snapshot["timeout"] is None else str(snapshot["timeout"])
             self.save_button.content = "Salvar alterações"
             self.save_button.icon = ft.Icons.SAVE
             self.cancel_edit_button.visible = True

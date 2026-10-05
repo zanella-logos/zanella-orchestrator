@@ -42,7 +42,7 @@ def ui(tmp_path, monkeypatch):
     Base.metadata.create_all(engine)
     with engine.begin() as connection:
         connection.exec_driver_sql("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)")
-        connection.exec_driver_sql("INSERT INTO alembic_version VALUES ('0005_schedules')")
+        connection.exec_driver_sql("INSERT INTO alembic_version VALUES ('0006')")
     app = ControlCenterUI(FakePage(), engine)
     app.refresh(update_page=False)
     yield app
@@ -126,7 +126,6 @@ def test_header_filters_pagination_and_form_buttons(ui):
     ui.robot_search.value = "abc"
     ui.run_search.value = "def"
     ui.run_state_filter.value = "failed"
-    ui.run_business_filter.value = "business_error"
     run(ui.clear_filters())
     assert (ui.robot_search.value, ui.run_search.value) == ("", "")
 
@@ -274,7 +273,14 @@ def test_trigger_update_only_when_valid_interval_changes(ui):
 
 
 def test_home_timeout_default_and_public_trigger_message(ui):
-    assert ui.timeout.value == "180"
+    assert ui.no_execution_limit.value is True
+    assert ui.timeout.disabled
+    assert ui.timeout.value == ""
+    assert not hasattr(ui, "run_business_filter")
+    assert {option.key for option in ui.run_state_filter.options} == {
+        "", "queued", "running", "completed", "failed", "cancelled", "timed_out",
+    }
+    assert "Negócio" not in [column.label.value for column in ui.runs_table.columns]
     run(ui.confirm_remove_windows_task())
     assert "Zanella Orchestrator" in ui.page.dialog.content.value
     assert "RCC" not in ui.page.dialog.content.value
@@ -331,3 +337,30 @@ def test_maintenance_and_bulk_action_buttons(ui, tmp_path, monkeypatch):
     run(ui.confirm_clear_robots())
     dialog_action(ui, "Limpar Tudo")()
     assert list_robots(ui.engine) == []
+
+
+def test_execution_limit_edit_and_explicit_queue_removal(ui, tmp_path):
+    script = tmp_path / "robot.py"
+    script.write_text("print('done')")
+    ui.name.value = "Legacy limit"
+    ui.target.value = str(script)
+    ui.launcher.value = sys.executable
+    ui.cwd.value = str(tmp_path)
+    ui.no_execution_limit.value = False
+    ui.change_execution_limit()
+    assert not ui.timeout.disabled
+    ui.timeout.value = "300"
+    run(ui.save_robot())
+    robot = list_robots(ui.engine)[0]
+    assert robot.timeout == 300
+    run(ui.edit_handler(robot)())
+    assert not ui.no_execution_limit.value
+    assert ui.timeout.value == "300.0"
+    run(ui.cancel_edit())
+    run(ui.enqueue_handler(robot.id, robot.name)())
+    run(ui.confirm_remove_execution_limits())
+    assert "segurar a fila" in ui.page.dialog.content.value
+    dialog_action(ui, "Remover limites")()
+    assert list_robots(ui.engine)[0].timeout is None
+    assert list_runs(ui.engine)[0][0].configuration["timeout"] is None
+    assert "Backup:" in ui.status.value

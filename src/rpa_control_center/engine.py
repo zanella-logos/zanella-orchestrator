@@ -84,7 +84,8 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
                 stdout_path=str(stdout_path), stderr_path=str(stderr_path),
                 result_path=str(result_path), process_id=process.pid,
             )
-            deadline = time.monotonic() + float(config["timeout"])
+            limit = config.get("timeout")
+            deadline = time.monotonic() + float(limit) if limit is not None else None
             final_state = None
             reason = None
             while not process.wait(0.1):
@@ -94,9 +95,9 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
                     process.stop()
                     final_state, reason = "cancelled", "Cancelled by operator"
                     break
-                if time.monotonic() >= deadline:
+                if deadline is not None and time.monotonic() >= deadline:
                     process.stop()
-                    final_state, reason = "timed_out", "Execution timeout exceeded"
+                    final_state, reason = "timed_out", "Maximum execution time exceeded"
                     break
             process.wait(10)
             exit_code = process.exit_code()

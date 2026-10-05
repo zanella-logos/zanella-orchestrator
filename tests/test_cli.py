@@ -19,7 +19,7 @@ def test_runs_command_handles_paginated_service_result(monkeypatch, capsys):
 
     cli.main()
 
-    assert capsys.readouterr().out.strip() == "run-1 completed success 0"
+    assert capsys.readouterr().out.strip() == "run-1 completed 0"
 
 
 def test_scheduler_command_runs_tick_and_engine(monkeypatch, capsys):

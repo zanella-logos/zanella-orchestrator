@@ -36,7 +36,7 @@ Use a seção **Cadastrar automação** e preencha:
 | Runtime ou launcher | Interpretador responsável pelo arquivo. Não é usado para executáveis nativos. |
 | Pasta de trabalho | Diretório no qual o processo será iniciado. |
 | Argumentos | Um argumento por linha, mantendo a ordem esperada pelo programa. |
-| Timeout | Limite máximo da execução, em segundos. |
+| Tempo máximo de execução | Limite total opcional em segundos. Padrão: Sem limite. Ao atingir o limite, encerra o robô mesmo se estiver trabalhando; não detecta travamento. |
 
 Tipos suportados:
 
@@ -86,7 +86,7 @@ Na seção **Agendamentos**:
 4. Clique em **Agendar**.
 5. Clique uma única vez em **Instalar gatilho global**.
 
-Todos os horários usam uma tarefa do Windows chamada `RPA Control Center Scheduler`. Ela consulta agendas vencidas a cada cinco minutos, cria as execuções correspondentes e processa a fila. Por isso, o início pode ocorrer até aproximadamente cinco minutos depois do horário cadastrado. O painel Flet pode permanecer fechado.
+Todos os horários usam uma tarefa do Windows chamada `RPA Control Center Scheduler`. Ela consulta agendas vencidas no intervalo configurado: padrão de 1 minuto, opções de 3 ou 5 e personalizado de 1 a 59. O início pode ocorrer até aproximadamente esse intervalo depois do horário cadastrado. Após cada robô, o executor consulta novos agendamentos vencidos e continua a fila sem aguardar outro disparo do Windows. O painel Flet pode permanecer fechado.
 
 O gatilho deve ser instalado apenas uma vez. Cadastrar novos horários não exige reinstalação. Na tabela de agendamentos é possível pausar, reativar ou remover cada horário. Essas ações não apagam o histórico.
 
@@ -97,7 +97,7 @@ Automações de navegador ou desktop exigem uma sessão Windows interativa. Bloq
 
 ## 5. Histórico, estados e resultados
 
-O histórico separa estado técnico do resultado de negócio.
+Na Community, o histórico mostra apenas o estado técnico da execução. Resultados de negócio ficam reservados para evolução Premium.
 
 Estados técnicos:
 
@@ -110,23 +110,14 @@ Estados técnicos:
 | `completed` | Processo terminou com código de saída zero. |
 | `failed` | Processo falhou ou não pôde iniciar. |
 | `cancelled` | Operador cancelou a execução. |
-| `timed_out` | Timeout excedido. |
+| `timed_out` | Tempo máximo de execução excedido. |
 | `interrupted` | Supervisão anterior foi interrompida. |
 
-Resultados de negócio:
-
-| Resultado | Significado |
-| --- | --- |
-| `success` | Robô declarou sucesso. |
-| `business_error` | Processo terminou, mas declarou problema de negócio. |
-| `technical_error` | Robô declarou falha técnica. |
-| `partial` | Resultado parcialmente concluído. |
-| `not_reported` | Robô não produziu contrato JSON de resultado. |
-| `invalid_report` | Arquivo de resultado existe, mas não segue o contrato esperado. |
-
-Use a pesquisa, os filtros de estado e negócio e os botões de paginação. **Logs** mostra `stdout` e `stderr`; **Abrir pasta de logs** mostra os arquivos no Explorer. Remover uma execução finalizada apaga também sua pasta de logs.
+Use a pesquisa, o filtro Estado e a paginação. Iniciando e Cancelando continuam sendo estados internos, mas não aparecem nas opções do filtro. **Logs** mostra stdout e stderr; **Abrir pasta de logs** abre os arquivos no Explorer.
 
 ## 6. Manutenção e portabilidade
+
+**Remover limites de execução:** após confirmação, salva backups e remove limites dos cadastros e das execuções na fila. Histórico anterior é preservado. A operação exige que nenhum robô esteja executando. Limites antigos não desaparecem apenas por instalar a RC6. Sem limite, um robô travado poderá segurar a fila até ser cancelado.
 
 - **Limpar antigos:** remove execuções finalizadas anteriores ao número de dias informado e tenta remover seus logs.
 - **Exportar cadastros:** cria JSON com configurações dos robôs. Não inclui histórico, logs, IDs nem credenciais.
@@ -165,7 +156,7 @@ Para desinstalar:
 
 ## 9. Contrato opcional de resultado
 
-O código de saída controla o estado técnico. Para informar resultado de negócio, o robô pode gravar JSON no caminho fornecido pela variável `RCC_RESULT_PATH`:
+O código de saída controla o estado técnico: zero indica conclusão; outros códigos indicam falha. A Community não exige mudanças nos robôs nem exibe resultados de negócio. O contrato interno abaixo foi preservado para compatibilidade técnica e evolução Premium, sem utilização na interface Free:
 
 ```json
 {

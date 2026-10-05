@@ -11,13 +11,13 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-0.1.0--rc5-F59E0B)](RELEASE_NOTES.md)
+[![Release](https://img.shields.io/badge/release-0.1.0--rc6-F59E0B)](RELEASE_NOTES.md)
 
 ## Download for Windows
 
-[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc5/Zanella-Orchestrator-Setup-0.1.0-rc5-windows-x64.exe)
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc6/Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe)
 
-**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc5/Zanella-Orchestrator-Setup-0.1.0-rc5-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc5)
+**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc6/Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc6)
 
 Compatible with 64-bit Windows 10 and 11. The application is not digitally signed yet, so Windows may display a security warning. Verify the SHA-256 checksum published with the release before installing.
 
@@ -28,10 +28,24 @@ Compatible with 64-bit Windows 10 and 11. The application is not digitally signe
 - **Local-first:** runs on your workstation or local server, without vendor lock-in.
 - **SQLite out of the box:** no database setup is required; PostgreSQL remains optional.
 - **Multiple executors:** Python, PowerShell, Batch, EXE, Node.js, and Java JAR files.
-- **Clear operations:** FIFO queue, execution history, native log capture, and separate technical and business outcomes.
+- **Clear operations:** FIFO queue, execution history, native log capture, and clear execution states.
 - **Basic scheduling:** one Windows Task Scheduler trigger activates schedules managed by the application.
 
 Planned **Zanella Orchestrator Pro** modules include remote nodes, advanced calendars with dependencies and retries, RBAC, and advanced SLA dashboards.
+
+## Maximum execution time
+
+New automations default to **No limit**. To set an optional total limit, clear **Sem limite** and enter a positive number of seconds in **Tempo máximo de execução**. Reaching this limit terminates the robot and its child processes, even if they are making progress. This is not idle-time or error detection.
+
+Without a limit, a stuck robot can hold the sequential queue until it is cancelled. Manual cancellation remains available.
+
+### Upgrading from RC5
+
+Close Zanella Orchestrator, wait for running robots to finish, and install RC6 over the existing installation under the same Windows account. Uninstalling is not required. The SQLite schema migration saves a backup before changing the schema and preserves existing registrations, limits, history, and schedules.
+
+**Existing limits, including 180 or 300 seconds, are not removed automatically.** In **Manutenção e portabilidade**, choose **Remover limites de execução** and confirm to remove limits from all registrations and queued items. This action first backs up registrations and queued configurations; SQLite also gets a full database backup. Past history remains unchanged. For PostgreSQL, use the server's backup tools for a full database backup. The action is blocked while a robot is executing.
+
+You can instead edit individual automations and select **Sem limite**. Individual editing requires no active or queued execution for that automation.
 
 ## Run from source
 
@@ -76,23 +90,23 @@ Run setup under the same Windows account that will run Zanella Orchestrator and 
 
 ## Implemented
 
-- Robot and execution models with an immutable configuration snapshot per run.
+- Robot and execution models with a configuration snapshot per run; explicit bulk limit removal updates queued snapshots only.
 - Initial migration and transactional queue claiming validated on SQLite and PostgreSQL 18.
 - Per-installation Windows mutex to guarantee sequential execution across sessions.
 - Suspended process creation, Windows Job Object assignment, and controlled startup.
 - Full child-process tree termination when the final Job Object handle closes.
 - Real-process tests for concurrency, termination, and supervisor failure.
-- Sequential engine with UTF-8 streaming logs, timeouts, cancellation, recovery, and optional business outcomes.
+- Sequential engine with UTF-8 streaming logs, optional total execution limits, cancellation, and recovery.
 - CLI for migrations, registration, queueing, history, cancellation, scheduling, and processing.
 - Flet, Chrome, and validation demo robots covering screenshots and execution outcomes.
 - Robot editing, activation, deactivation, immediate execution, and guarded removal.
 - Individual completed-run removal with its log directory.
-- Colored technical-state and business-outcome indicators.
+- Colored execution-state indicators; the Community UI uses only the State filter.
 - Command adapters for Python, PowerShell, Batch, EXE, Node.js, and Java JAR files.
 
 All entry points in one installation must use the same mutex identifier. The scheduler was validated under the same Windows account as the application. Transactional claiming alone does not prevent two different jobs from running simultaneously; the mutex is also required.
 
-Validation on 2026-09-17: 38 tests passed and 1 PostgreSQL test was skipped. Coverage includes SQLite, generic executors, repeatable migrations, concurrency, Job Objects, supervisor failure, success, business failure, technical failure, sequential queueing, logs, timeout, cancellation, browser capture, editing, activation, and removals. PostgreSQL has a separate credential-aware validation flow.
+RC6 local validation on 2026-10-05: 88 tests passed and 1 PostgreSQL test was skipped. The packaged scheduler completed an unlimited robot, enforced an explicit limit, continued FIFO immediately, rejected a concurrent worker, and opened no extra window. The user's VDI validation is still pending.
 
 ## Database and migrations
 
@@ -115,29 +129,31 @@ Register `demo/validation_robot.py` with one of these arguments:
 - `technical_error`: exits with code 7 and a technical failure;
 - `hang`: creates a child process and waits for timeout or cancellation.
 
-Use a short timeout with `hang` to validate `timed_out`, or a long timeout followed by **Cancelar** to validate `cancelled`. Enqueue two `success` runs to confirm sequential ordering.
+For the `hang` demo, enable a short total execution limit to validate `timed_out`, or use **Cancelar** with no limit to validate `cancelled`. The Community UI shows execution states only; a zero exit code means technical completion, not verified business success. Enqueue two `success` runs to confirm sequential ordering.
 
 ## Release candidate
 
-Version `0.1.0-rc5` adds continuous FIFO queue processing, configurable polling from 1 to 59 minutes, and a 180-second default Home timeout. It retains the RC4 fixes validated on another Windows machine. It includes an installer, SHA-256 checksum, and [release notes](RELEASE_NOTES.md).
+RC6 changes the default to **No limit**, makes the total execution limit explicit, simplifies the Community history to State, and updates OAuthlib to 4.0.0. It retains continuous FIFO queue processing and configurable polling from 1 to 59 minutes from RC5. RC6 is available for download. New automations use No limit; existing limits require explicit removal.
 
 ## Windows executable
 
 The project follows the official `flet build` structure with `main.py` as its entry point and configuration in `pyproject.toml`. Packaged builds store the database, logs, and configuration in `FLET_APP_STORAGE_DATA`; development uses the project `data` directory.
 
 ```powershell
-.venv\Scripts\flet.exe build windows --python-version 3.13 --no-compile-app --yes --no-rich-output
+uv pip install "flet[cli]==1.0.0"
+.venv\Scripts\python.exe scripts\prepare_windows_build.py
+.venv\Scripts\flet.exe build windows "<staging-path>" --python-version 3.13 --no-compile-app --build-version 0.1.0 --build-number 10 --output build/windows-rc6-final --yes --no-rich-output
 ```
 
-Python sources remain in the package because Alembic discovers revisions under `migrations\versions`. The build is written to `build\windows`; Inno Setup builds the installer from `installer\Zanella-Orchestrator.iss`.
+Replace `<staging-path>` with the full path printed by the preparation script. Python sources remain in the package because Alembic discovers revisions under `migrations\versions`. Release sources are staged with `scripts/prepare_windows_build.py` to exclude local test data. The RC6 build is written to `build\windows-rc6-final`; Inno Setup builds the installer from `installer\Zanella-Orchestrator.iss`.
 
-Locally validated candidate: `dist\Zanella-Orchestrator-Setup-0.1.0-rc5-windows-x64.exe`. Verify it with `dist\SHA256SUMS-0.1.0-rc5.txt`.
+Release installer: `dist\Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe`. Verify it with `dist\SHA256SUMS-0.1.0-rc6.txt`.
 
 ## CLI
 
 ```powershell
 uv run rcc init
-uv run rcc robot-add "Example" "C:\path\robot.py" --python "C:\path\.venv\Scripts\python.exe" --cwd "C:\path" --timeout 3600
+uv run rcc robot-add "Example" "C:\path\robot.py" --python "C:\path\.venv\Scripts\python.exe" --cwd "C:\path"
 uv run rcc robot-add "PowerShell" "C:\path\robot.ps1" --type powershell --executable "C:\Windows\System32\WindowsPowerShell\v1.0\powershell.exe" --cwd "C:\path"
 uv run rcc enqueue ROBOT_ID
 uv run rcc engine
@@ -146,7 +162,7 @@ uv run rcc scheduler
 uv run rcc cancel RUN_ID
 ```
 
-`engine` processes the queue until empty. Complete logs are stored in `data/logs/<run_id>`; the database stores paths, states, timestamps, exit codes, and declared business outcomes.
+`engine` processes the queue until empty. Complete logs are stored in `data/logs/<run_id>`; the database stores paths, states, timestamps, and exit codes. Business-outcome reporting is not displayed in the Community UI.
 
 External runtimes are not bundled. Node.js, Java, and other executables must be installed separately and registered with their paths. The PowerShell adapter applies `ExecutionPolicy Bypass` only to the child session and does not change the global Windows policy.
 
@@ -158,7 +174,7 @@ Multilanguage validation on 2026-09-17 ran Python/Flet, PowerShell 5.1, Node.js 
 | --- | --- |
 | Python, PowerShell, EXE, Batch, Node.js, and Java | Remote nodes across multiple machines |
 | Manual execution and local sequential queue | Invisible Windows service |
-| Logs, history, timeout, and cancellation | Advanced SLA and analytics dashboards |
+| Logs, history, optional execution limits, and cancellation | Business outcomes, progress monitoring, and advanced SLA dashboards (planned) |
 | SQLite out of the box and optional PostgreSQL | Enterprise authentication: RBAC, Active Directory, and SSO |
 | Basic scheduling through one Windows trigger | Advanced calendars, dependencies, retries, and cron |
 | Basic module API | Advanced Teams, Slack, and webhook alerts |

@@ -22,7 +22,7 @@ class Robot(Base):
     interpreter: Mapped[str] = mapped_column(Text)
     cwd: Mapped[str] = mapped_column(Text)
     arguments: Mapped[list] = mapped_column(JSON, default=list)
-    timeout: Mapped[float] = mapped_column(Float, default=3600)
+    timeout: Mapped[float | None] = mapped_column(Float, nullable=True)
     active: Mapped[bool] = mapped_column(Boolean, default=True, server_default="true")
 
 

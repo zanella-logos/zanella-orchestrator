@@ -15,7 +15,14 @@ if context.is_offline_mode():
 else:
     engine = make_engine(url)
     with engine.connect() as connection:
+        # SQLite batch migrations rebuild tables referenced by execution history.
+        if connection.dialect.name == "sqlite":
+            connection.connection.driver_connection.execute("PRAGMA foreign_keys=OFF")
         context.configure(connection=connection, target_metadata=Base.metadata)
         with context.begin_transaction():
             context.run_migrations()
+        if connection.dialect.name == "sqlite":
+            if connection.connection.driver_connection.execute("PRAGMA foreign_key_check").fetchone():
+                raise RuntimeError("Database migration left invalid references")
+            connection.connection.driver_connection.execute("PRAGMA foreign_keys=ON")
     engine.dispose()

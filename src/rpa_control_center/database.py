@@ -1,16 +1,22 @@
 """Database configuration and migrations."""
 
 from pathlib import Path
+from contextlib import nullcontext
 import os
 import shutil
 import sqlite3
 import tomllib
+import uuid
 from urllib.parse import quote
 
 from alembic import command
 from alembic.config import Config
+from sqlalchemy.engine import make_url
+from sqlalchemy import inspect, text
 
 from .credentials import get_postgres_password
+from .store import make_engine
+from .windows import InstallationLock
 
 
 def application_data_dir() -> Path:
@@ -61,6 +67,30 @@ def database_url(config_path: Path | None = None) -> str:
 
 
 def upgrade_database(url: str) -> None:
+    engine = make_engine(url)
+    try:
+        with engine.connect() as connection:
+            revision = connection.scalar(text("SELECT version_num FROM alembic_version")) if inspect(connection).has_table("alembic_version") else None
+    finally:
+        engine.dispose()
+    with InstallationLock("default") if revision != "0006" else nullcontext():
+        _upgrade_database(url)
+
+
+def _upgrade_database(url: str) -> None:
+    parsed = make_url(url)
+    if parsed.get_backend_name() == "sqlite" and parsed.database and parsed.database != ":memory:":
+        source_path = Path(parsed.database)
+        if source_path.is_file():
+            with sqlite3.connect(source_path) as source:
+                has_version = source.execute(
+                    "SELECT 1 FROM sqlite_master WHERE type='table' AND name='alembic_version'"
+                ).fetchone()
+                revision = source.execute("SELECT version_num FROM alembic_version").fetchone() if has_version else None
+                if revision and revision[0] != "0006":
+                    backup_path = source_path.with_name(source_path.name + f".before-rc6-{uuid.uuid4().hex}.bak")
+                    with sqlite3.connect(backup_path) as backup:
+                        source.backup(backup)
     project_root = Path(__file__).resolve().parents[2]
     config = Config(str(project_root / "alembic.ini"))
     config.set_main_option("script_location", str(project_root / "migrations"))

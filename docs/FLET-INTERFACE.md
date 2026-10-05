@@ -9,7 +9,7 @@ Flet não substitui Python. Ele é uma biblioteca Python que cria controles visu
 | `ft.run(main)` | Inicia o runtime visual e chama `main` quando a janela está pronta. | `if __name__ == "__main__"` inicia um programa; em tkinter seria `root.mainloop()`. |
 | `ft.Page` | Representa a janela e contém tema, tamanho e controles. | Objeto de contexto; em tkinter se aproxima de `tk.Tk`. |
 | `ft.Text` | Exibe títulos, estados e logs. | Uma `str` contém o texto; `tk.Label` o mostra visualmente. |
-| `ft.TextField` | Recebe nome, caminhos, argumentos e timeout. | Atributo `str` ou `input()`; em tkinter, `tk.Entry` ou `tk.Text`. |
+| `ft.TextField` | Recebe nome, caminhos, argumentos e tempo máximo opcional de execução. | Atributo `str` ou `input()`; em tkinter, `tk.Entry` ou `tk.Text`. |
 | `ft.Dropdown` | Restringe o tipo de executor aos valores suportados. | Validação contra uma tupla; em tkinter, `ttk.Combobox`. |
 | `ft.Button` | Dispara cadastro, fila, atualização, logs e cancelamento. | Chamada de função; em tkinter, `tk.Button(command=...)`. |
 | `on_click` / `on_select` | Guarda uma função callback chamada após o evento do usuário. | Passar uma função como objeto: `botao = minha_funcao`, sem executá-la naquele momento. |

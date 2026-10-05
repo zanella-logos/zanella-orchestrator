@@ -8,12 +8,13 @@ from pathlib import Path
 import sqlite3
 import time
 
-from sqlalchemy import delete, func, select
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from .executors import EXECUTOR_TYPES
 from .models import Robot, Run
-from .service import _remove_log_directory
+from .service import _remove_log_directory, validate_execution_limit
+from .windows import InstallationLock
 
 
 ACTIVE_STATES = {"queued", "starting", "running", "cancelling"}
@@ -105,8 +106,9 @@ def import_robots(engine, source: Path) -> tuple[int, int]:
                 raise ValueError("O backup contém nome vazio ou duplicado.")
             if executor_type not in EXECUTOR_TYPES:
                 raise ValueError(f"Tipo de executor inválido para {name}.")
-            if not isinstance(arguments, list) or not isinstance(timeout, (int, float)) or timeout <= 0:
+            if not isinstance(arguments, list):
                 raise ValueError(f"Argumentos ou timeout inválidos para {name}.")
+            timeout = validate_execution_limit(timeout)
             names.add(name)
             robot = session.scalar(select(Robot).where(Robot.name == name))
             values = {
@@ -115,7 +117,7 @@ def import_robots(engine, source: Path) -> tuple[int, int]:
                 "interpreter": str(item.get("interpreter", "")),
                 "cwd": str(item.get("cwd", "")),
                 "arguments": [str(value) for value in arguments],
-                "timeout": float(timeout),
+                "timeout": timeout,
                 "active": bool(item.get("active", True)),
             }
             if robot is None:
@@ -126,6 +128,31 @@ def import_robots(engine, source: Path) -> tuple[int, int]:
                     setattr(robot, field, value)
                 updated += 1
     return created, updated
+
+
+def remove_execution_limits(engine, backup_directory: Path, installation_id: str = "default") -> tuple[int, int, Path]:
+    """Explicitly remove registered and queued limits; preserve completed history."""
+    with InstallationLock(installation_id):
+        with Session(engine) as session:
+            if session.scalar(select(Run.id).where(Run.state.in_({"starting", "running", "cancelling"})).limit(1)):
+                raise ValueError("Aguarde a execução terminar antes de remover os limites.")
+        backup_directory.mkdir(parents=True, exist_ok=False)
+        export_robots(engine, backup_directory / "cadastros.json")
+        if engine.dialect.name == "sqlite":
+            backup_sqlite(engine, backup_directory / "control_center.db")
+        with Session(engine) as session, session.begin():
+            queued = list(session.scalars(select(Run).where(Run.state == "queued")))
+            queued_backup = [{"id": run.id, "configuration": run.configuration} for run in queued]
+            (backup_directory / "fila.json").write_text(
+                json.dumps(queued_backup, ensure_ascii=False, indent=2), encoding="utf-8"
+            )
+            changed = session.execute(update(Robot).where(Robot.timeout.is_not(None)).values(timeout=None)).rowcount
+            queued_changed = 0
+            for run in queued:
+                if run.configuration.get("timeout") is not None:
+                    run.configuration = {**run.configuration, "timeout": None}
+                    queued_changed += 1
+        return changed, queued_changed, backup_directory
 
 
 def backup_sqlite(engine, destination: Path) -> Path:
@@ -167,6 +194,9 @@ def restore_sqlite(engine, source: Path) -> None:
             current.backup(safety)
         with closing(sqlite3.connect(source)) as backup, closing(sqlite3.connect(target_path)) as current:
             backup.backup(current)
+        # Older backups must gain the nullable execution limit before new edits.
+        from .database import upgrade_database
+        upgrade_database(str(engine.url))
     except Exception:
         if safety_path.exists():
             with closing(sqlite3.connect(safety_path)) as safety, closing(sqlite3.connect(target_path)) as current:

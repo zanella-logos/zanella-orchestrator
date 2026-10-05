@@ -18,7 +18,7 @@ def create_database(tmp_path: Path):
     Base.metadata.create_all(engine)
     with engine.begin() as connection:
         connection.exec_driver_sql("CREATE TABLE alembic_version (version_num VARCHAR(32) NOT NULL)")
-        connection.exec_driver_sql("INSERT INTO alembic_version VALUES ('0004_robot_active')")
+        connection.exec_driver_sql("INSERT INTO alembic_version VALUES ('0006')")
     robot_id = add_robot(
         engine, "Robot A", "robot.py", "python.exe", str(tmp_path), ["--demo"], 30, "python"
     )

@@ -19,7 +19,7 @@ dependencies = [
 
 [project.optional-dependencies]
 postgres = ["psycopg[binary]>=3.2,<4"]
-ui = ["flet>=1,<2", "flet-desktop>=1,<2"]
+ui = ["flet==1.0.0", "flet-desktop==1.0.0", "oauthlib>=4.0.0,<5; sys_platform != 'emscripten'"]
 
 [project.scripts]
 rcc = "rpa_control_center.cli:main"
@@ -50,6 +50,13 @@ exclude = [
   ".pytest_cache",
   ".serena",
   ".test-tmp",
+  ".rc6-*",
+  ".rc5-*",
+  ".tmp-*",
+  ".test-*",
+  ".scheduler-*",
+  ".python-runtime-*",
+  ".codex-remote-attachments",
   ".tmp-tests*",
   ".tmp-tests",
   ".tmp-tests-2",
@@ -82,4 +89,4 @@ exclude = [
 ]
 
 [tool.flet.windows]
-dependencies = ["flet>=1,<2", "psycopg[binary]>=3.2,<4"]
+dependencies = ["flet==1.0.0", "oauthlib>=4.0.0,<5", "psycopg[binary]>=3.2,<4"]
