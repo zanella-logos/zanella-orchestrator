@@ -11,13 +11,15 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-0.1.0--rc6-F59E0B)](RELEASE_NOTES.md)
+RC7 is available for download: vertical scrolling in schedules and the Windows scheduled task named Zanella Orchestrator.
+
+[![Release](https://img.shields.io/badge/release-0.1.0--rc7-F59E0B)](RELEASE_NOTES.md)
 
 ## Download for Windows
 
-[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc6/Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe)
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc7/Zanella-Orchestrator-Setup-0.1.0-rc7-windows-x64.exe)
 
-**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc6/Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc6)
+**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc7/Zanella-Orchestrator-Setup-0.1.0-rc7-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc7)
 
 Compatible with 64-bit Windows 10 and 11. The application is not digitally signed yet, so Windows may display a security warning. Verify the SHA-256 checksum published with the release before installing.
 

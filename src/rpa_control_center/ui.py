@@ -240,6 +240,10 @@ class ControlCenterUI:
             columns=[], heading_row_color=ft.Colors.PRIMARY_CONTAINER, column_spacing=20,
             data_row_min_height=48, data_row_max_height=56,
         )
+        self.schedules_table_scroll = ft.Column(
+            controls=[self.schedules_table], scroll=ft.ScrollMode.ALWAYS,
+            height=280, tight=True,
+        )
         task_installed = windows_task_installed()
         self.task_installed = task_installed
         self.task_interval_minutes = saved_task_interval(task_installed)
@@ -560,7 +564,7 @@ class ControlCenterUI:
                 ),
                 self.schedule_custom_days,
                 ft.Container(
-                    content=ft.Row(controls=[self.schedules_table], scroll=ft.ScrollMode.ALWAYS),
+                    content=ft.Row(controls=[self.schedules_table_scroll], scroll=ft.ScrollMode.ALWAYS),
                     height=280,
                 ),
             ]),

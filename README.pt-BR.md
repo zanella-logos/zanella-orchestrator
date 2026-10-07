@@ -11,13 +11,15 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-[![Release](https://img.shields.io/badge/release-0.1.0--rc6-F59E0B)](RELEASE_NOTES.md)
+RC7 disponível para download: rolagem vertical nos agendamentos e tarefa Windows com o nome Zanella Orchestrator.
+
+[![Release](https://img.shields.io/badge/release-0.1.0--rc7-F59E0B)](RELEASE_NOTES.md)
 
 ## Download para Windows
 
-[![Baixar o instalador para Windows](https://img.shields.io/badge/Download-Instalador%20Windows-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc6/Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe)
+[![Baixar o instalador para Windows](https://img.shields.io/badge/Download-Instalador%20Windows-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc7/Zanella-Orchestrator-Setup-0.1.0-rc7-windows-x64.exe)
 
-**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc6/Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe)** · [Ver todas as versões](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc6)
+**[Baixar diretamente o instalador `.exe`](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc7/Zanella-Orchestrator-Setup-0.1.0-rc7-windows-x64.exe)** · [Ver todas as versões](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc7)
 
 Compatível com Windows 10 e 11 de 64 bits. O aplicativo ainda não possui assinatura digital; por isso, o Windows pode exibir um aviso de segurança. Confira o checksum SHA-256 publicado na release antes da instalação.
 

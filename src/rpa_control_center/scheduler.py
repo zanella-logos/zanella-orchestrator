@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timedelta
+import logging
 import os
 import re
 from pathlib import Path
@@ -19,7 +20,8 @@ from .service import robot_snapshot
 from .windows import InstallationBusy
 
 
-TASK_NAME = "RPA Control Center Scheduler"
+TASK_NAME = "Zanella Orchestrator"
+LEGACY_TASK_NAME = "RPA Control Center Scheduler"
 TASK_INTERVAL_MINUTES = 1
 WEEKDAYS = ("Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo")
 
@@ -180,8 +182,60 @@ def saved_task_interval(installed: bool = False) -> int:
     return 5 if installed else TASK_INTERVAL_MINUTES
 
 
+def _migrate_legacy_windows_task() -> None:
+    script = f"""
+$ErrorActionPreference = 'Stop'
+$oldName = '{LEGACY_TASK_NAME}'
+$newName = '{TASK_NAME}'
+$oldTask = Get-ScheduledTask -TaskName $oldName -ErrorAction SilentlyContinue
+if ($null -eq $oldTask) {{ exit 0 }}
+$newTask = Get-ScheduledTask -TaskName $newName -ErrorAction SilentlyContinue
+if ($null -ne $newTask) {{
+    Disable-ScheduledTask -TaskName $oldName | Out-Null
+    try {{
+        Unregister-ScheduledTask -TaskName $oldName -Confirm:$false -ErrorAction Stop
+    }} catch {{
+        Write-Output 'LEGACY_TASK_REMAINS_DISABLED'
+    }}
+    exit 0
+}}
+[xml]$definition = Export-ScheduledTask -TaskName $oldName
+Disable-ScheduledTask -TaskName $oldName | Out-Null
+try {{
+    if ($definition.Task.RegistrationInfo.URI) {{
+        $definition.Task.RegistrationInfo.URI = "\\$newName"
+    }}
+    Register-ScheduledTask -TaskName $newName -Xml $definition.OuterXml -ErrorAction Stop | Out-Null
+    Get-ScheduledTask -TaskName $newName -ErrorAction Stop | Out-Null
+    try {{
+        Unregister-ScheduledTask -TaskName $oldName -Confirm:$false -ErrorAction Stop
+    }} catch {{
+        Write-Output 'LEGACY_TASK_REMAINS_DISABLED'
+    }}
+}} catch {{
+    $newTask = Get-ScheduledTask -TaskName $newName -ErrorAction SilentlyContinue
+    if ($null -ne $newTask) {{
+        Disable-ScheduledTask -TaskName $newName -ErrorAction SilentlyContinue | Out-Null
+        Unregister-ScheduledTask -TaskName $newName -Confirm:$false -ErrorAction SilentlyContinue
+    }}
+    Enable-ScheduledTask -TaskName $oldName -ErrorAction SilentlyContinue | Out-Null
+    throw
+}}
+"""
+    result = subprocess.run(
+        ["powershell.exe", "-NoProfile", "-NonInteractive", "-Command", script],
+        capture_output=True, text=True, encoding="utf-8", errors="replace",
+        creationflags=subprocess.CREATE_NO_WINDOW,
+    )
+    if result.returncode:
+        raise ValueError((result.stderr or result.stdout).strip() or "Falha ao migrar a tarefa do Agendador do Windows.")
+    if "LEGACY_TASK_REMAINS_DISABLED" in (result.stdout or ""):
+        logging.warning("A tarefa antiga do Zanella permaneceu desativada após a migração.")
+
+
 def install_windows_task(project_root: Path, interval_minutes: str | int = TASK_INTERVAL_MINUTES) -> None:
     interval_minutes = parse_task_interval(interval_minutes)
+    _migrate_legacy_windows_task()
     rcc_path = scheduler_cli_path()
     data_dir = application_data_dir()
     runner_path = data_dir / "run-scheduler.vbs"
@@ -214,13 +268,19 @@ def install_windows_task(project_root: Path, interval_minutes: str | int = TASK_
 
 
 def remove_windows_task() -> None:
-    result = subprocess.run(
-        ["schtasks.exe", "/Delete", "/TN", TASK_NAME, "/F"],
-        capture_output=True, text=True, encoding="utf-8", errors="replace",
-        creationflags=subprocess.CREATE_NO_WINDOW,
-    )
-    if result.returncode:
-        raise ValueError((result.stderr or result.stdout).strip() or "Falha ao remover tarefa do Windows.")
+    failures = []
+    for task_name in (TASK_NAME, LEGACY_TASK_NAME):
+        if not _windows_task_exists(task_name):
+            continue
+        result = subprocess.run(
+            ["schtasks.exe", "/Delete", "/TN", task_name, "/F"],
+            capture_output=True, text=True, encoding="utf-8", errors="replace",
+            creationflags=subprocess.CREATE_NO_WINDOW,
+        )
+        if result.returncode:
+            failures.append((result.stderr or result.stdout).strip() or task_name)
+    if failures:
+        raise ValueError("; ".join(failures))
     data_dir = application_data_dir()
     (data_dir / "run-scheduler.vbs").unlink(missing_ok=True)
     (data_dir / "run-scheduler.cmd").unlink(missing_ok=True)
@@ -230,9 +290,14 @@ def open_windows_task_scheduler() -> None:
     os.startfile("taskschd.msc")
 
 
-def windows_task_installed() -> bool:
+def _windows_task_exists(task_name: str) -> bool:
     result = subprocess.run(
-        ["schtasks.exe", "/Query", "/TN", TASK_NAME],
+        ["schtasks.exe", "/Query", "/TN", task_name],
         capture_output=True, creationflags=subprocess.CREATE_NO_WINDOW,
     )
     return result.returncode == 0
+
+
+def windows_task_installed() -> bool:
+    _migrate_legacy_windows_task()
+    return _windows_task_exists(TASK_NAME)

@@ -149,10 +149,10 @@ def test_remove_windows_task_deletes_task_and_runner(tmp_path, monkeypatch):
     hidden_runner.write_text("test", encoding="utf-8")
     legacy_runner = data_dir / "run-scheduler.cmd"
     legacy_runner.write_text("test", encoding="utf-8")
-    captured = {}
+    captured = []
 
     def fake_run(command, **kwargs):
-        captured["command"] = command
+        captured.append(command)
         return SimpleNamespace(returncode=0, stdout="", stderr="")
 
     monkeypatch.setattr(scheduler_module, "application_data_dir", lambda: data_dir)
@@ -160,11 +160,37 @@ def test_remove_windows_task_deletes_task_and_runner(tmp_path, monkeypatch):
 
     scheduler_module.remove_windows_task()
 
-    assert captured["command"] == [
-        "schtasks.exe", "/Delete", "/TN", scheduler_module.TASK_NAME, "/F"
+    assert captured == [
+        ["schtasks.exe", "/Query", "/TN", scheduler_module.TASK_NAME],
+        ["schtasks.exe", "/Delete", "/TN", scheduler_module.TASK_NAME, "/F"],
+        ["schtasks.exe", "/Query", "/TN", scheduler_module.LEGACY_TASK_NAME],
+        ["schtasks.exe", "/Delete", "/TN", scheduler_module.LEGACY_TASK_NAME, "/F"],
     ]
     assert not hidden_runner.exists()
     assert not legacy_runner.exists()
+
+
+def test_legacy_task_migration_preserves_exported_definition(monkeypatch):
+    calls = []
+
+    def fake_run(command, **kwargs):
+        calls.append(command)
+        return SimpleNamespace(returncode=0, stdout="", stderr="")
+
+    monkeypatch.setattr(scheduler_module.subprocess, "run", fake_run)
+
+    assert scheduler_module.windows_task_installed()
+
+    migration = calls[0]
+    script = migration[-1]
+    assert migration[:3] == ["powershell.exe", "-NoProfile", "-NonInteractive"]
+    assert scheduler_module.LEGACY_TASK_NAME in script
+    assert "Export-ScheduledTask" in script
+    assert "Register-ScheduledTask" in script
+    assert "Disable-ScheduledTask" in script
+    assert "Unregister-ScheduledTask" in script
+    assert scheduler_module.TASK_NAME in script
+    assert calls[-1] == ["schtasks.exe", "/Query", "/TN", scheduler_module.TASK_NAME]
 
 
 def test_open_windows_task_scheduler(monkeypatch):

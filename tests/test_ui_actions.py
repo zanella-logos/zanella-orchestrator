@@ -104,6 +104,9 @@ def test_all_static_buttons_are_wired(ui):
 
 
 def test_header_filters_pagination_and_form_buttons(ui):
+    assert ui.schedules_table_scroll.scroll == ft.ScrollMode.ALWAYS
+    assert ui.schedules_table_scroll.height == 280
+
     ui.toggle_theme()
     assert ui.page.theme_mode == ft.ThemeMode.LIGHT
     ui.toggle_theme()
