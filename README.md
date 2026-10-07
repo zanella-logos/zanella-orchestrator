@@ -41,9 +41,9 @@ New automations default to **No limit**. To set an optional total limit, clear *
 
 Without a limit, a stuck robot can hold the sequential queue until it is cancelled. Manual cancellation remains available.
 
-### Upgrading from RC5
+### Updating Zanella Orchestrator
 
-Close Zanella Orchestrator, wait for running robots to finish, and install RC6 over the existing installation under the same Windows account. Uninstalling is not required. The SQLite schema migration saves a backup before changing the schema and preserves existing registrations, limits, history, and schedules.
+Close Zanella Orchestrator, wait for running robots to finish, and install RC7 over the existing installation under the same Windows account. Uninstalling is not required. The SQLite schema migration saves a backup before changing the schema and preserves existing registrations, limits, history, and schedules.
 
 **Existing limits, including 180 or 300 seconds, are not removed automatically.** In **Manutenção e portabilidade**, choose **Remover limites de execução** and confirm to remove limits from all registrations and queued items. This action first backs up registrations and queued configurations; SQLite also gets a full database backup. Past history remains unchanged. For PostgreSQL, use the server's backup tools for a full database backup. The action is blocked while a robot is executing.
 

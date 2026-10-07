@@ -40,9 +40,9 @@ Novas automações vêm com **Sem limite** marcado. Para definir um limite total
 
 Sem limite, um robô travado poderá segurar a fila sequencial até ser cancelado. O cancelamento manual continua disponível.
 
-### Atualização da RC5
+### Atualizando o Zanella Orchestrator
 
-Feche o Zanella Orchestrator, aguarde os robôs em execução terminarem e instale a RC6 por cima, no mesmo usuário Windows. Não precisa desinstalar. A migração do esquema SQLite salva um backup antes de alterar a estrutura e preserva cadastros, limites existentes, histórico e agendamentos.
+Feche o Zanella Orchestrator, aguarde os robôs em execução terminarem e instale a RC7 por cima, no mesmo usuário Windows. Não precisa desinstalar. A migração do esquema SQLite salva um backup antes de alterar a estrutura e preserva cadastros, limites existentes, histórico e agendamentos.
 
 **Limites existentes, inclusive 180 ou 300 segundos, não são removidos automaticamente.** Em **Manutenção e portabilidade**, clique em **Remover limites de execução** e confirme para retirar os limites de todos os cadastros e itens na fila. Antes da mudança, são salvos backups dos cadastros e das configurações enfileiradas; no SQLite, também há backup completo do banco. O histórico anterior permanece intacto. Para backup completo do PostgreSQL, use as ferramentas do servidor. A ação fica bloqueada enquanto um robô estiver executando.
 
