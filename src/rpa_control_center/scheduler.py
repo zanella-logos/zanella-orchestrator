@@ -249,7 +249,7 @@ def install_windows_task(project_root: Path, interval_minutes: str | int = TASK_
         f'shell.CurrentDirectory = "{vbs_project_root}"\n'
         + f'shell.Environment("PROCESS")("RCC_DATA_DIR") = "{vbs_data_dir}"\n'
         + ('shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"\n' if packaged else '')
-        + f'exitCode = shell.Run("""{vbs_rcc_path}"""{command_suffix}, 0, True)\n'
+        + f'exitCode = shell.Run("""{vbs_rcc_path}"""{command_suffix}, 1, True)\n'
         'WScript.Quit exitCode\n',
         encoding="utf-16",
     )
@@ -300,4 +300,18 @@ def _windows_task_exists(task_name: str) -> bool:
 
 def windows_task_installed() -> bool:
     _migrate_legacy_windows_task()
-    return _windows_task_exists(TASK_NAME)
+    installed = _windows_task_exists(TASK_NAME)
+    if installed:
+        runner = application_data_dir() / "run-scheduler.vbs"
+        if runner.exists():
+            content = runner.read_text(encoding="utf-16")
+            updated = re.sub(
+                r'(?m)^(exitCode = shell\.Run\(.+), 0, True\)$',
+                r'\1, 1, True)', content,
+            )
+            if updated != content:
+                backup = runner.with_name("run-scheduler.before-focus.vbs")
+                if not backup.exists():
+                    backup.write_bytes(runner.read_bytes())
+                runner.write_text(updated, encoding="utf-16")
+    return installed

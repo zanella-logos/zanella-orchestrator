@@ -12,7 +12,7 @@ from .models import Run
 from .executors import build_command, validate_command_paths
 from .store import claim_next, claim_specific
 from .scheduler import enqueue_due_schedules
-from .windows import InstallationLock, ProcessTree
+from .windows import DesktopTrace, InstallationLock, OwnedWindowActivation, ProcessTree
 
 
 FINAL_STATES = {"completed", "failed", "cancelled", "timed_out", "interrupted"}
@@ -75,10 +75,22 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
     environment["RCC_RUN_ID"] = run_id
     environment["RCC_RESULT_PATH"] = str(result_path)
     started = time.time()
+    activation = None
     try:
         with ProcessTree(
             command, cwd, str(stdout_path), str(stderr_path), environment
         ) as process:
+            trace = (
+                DesktopTrace(process, run_dir / "desktop-trace.jsonl")
+                if os.environ.get("RCC_DESKTOP_TRACE") == "1" else None
+            )
+            if trace is not None:
+                trace.sample(force=True)
+            if os.environ.get("RCC_WINDOW_ACTIVATION", "1") == "1":
+                activation = OwnedWindowActivation(
+                    process, run_dir / "window-activation.jsonl" if trace is not None else None
+                )
+                activation.start()
             _finish(
                 engine, run_id, state="running", started_at=started,
                 stdout_path=str(stdout_path), stderr_path=str(stderr_path),
@@ -89,6 +101,8 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
             final_state = None
             reason = None
             while not process.wait(0.1):
+                if trace is not None:
+                    trace.sample()
                 with Session(engine) as session:
                     state = session.scalar(select(Run.state).where(Run.id == run_id))
                 if state == "cancelling":
@@ -100,6 +114,10 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
                     final_state, reason = "timed_out", "Maximum execution time exceeded"
                     break
             process.wait(10)
+            if activation is not None:
+                activation.close()
+            if trace is not None:
+                trace.sample(force=True)
             exit_code = process.exit_code()
             if final_state is None:
                 final_state = "completed" if exit_code == 0 else "failed"
@@ -108,6 +126,9 @@ def execute_run(engine, run_id: str, logs_root: Path) -> str:
     except Exception as error:
         _finish(engine, run_id, state="failed", ended_at=time.time(), reason=f"Could not start process: {error}")
         return "failed"
+    finally:
+        if activation is not None:
+            activation.close()
     business, summary = read_business_result(result_path, run_id)
     _finish(
         engine, run_id, state=final_state, ended_at=time.time(), exit_code=exit_code,

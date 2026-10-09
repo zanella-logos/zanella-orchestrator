@@ -11,15 +11,15 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Windows](https://img.shields.io/badge/Windows-10%20%7C%2011-06B6D4)](https://www.microsoft.com/windows)
 [![Python](https://img.shields.io/badge/Python-3.12%2B-3B82F6)](https://www.python.org/)
-RC7 is available for download: vertical scrolling in schedules and the Windows scheduled task named Zanella Orchestrator.
+RC8 improves robot window activation during automatic execution through Windows Task Scheduler. Zanella restores minimized windows and requests focus only for windows belonging to the current run. Sequential queue processing is preserved. To update, wait for running robots to finish, close Zanella, and install over the existing version.
 
-[![Release](https://img.shields.io/badge/release-0.1.0--rc7-F59E0B)](RELEASE_NOTES.md)
+[![Release](https://img.shields.io/badge/release-0.1.0--rc8-F59E0B)](RELEASE_NOTES.md)
 
 ## Download for Windows
 
-[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc7/Zanella-Orchestrator-Setup-0.1.0-rc7-windows-x64.exe)
+[![Download Windows installer](https://img.shields.io/badge/Download-Windows%20Installer-06B6D4?style=for-the-badge&logo=windows11&logoColor=white)](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc8/Zanella-Orchestrator-Setup-0.1.0-rc8-windows-x64.exe)
 
-**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc7/Zanella-Orchestrator-Setup-0.1.0-rc7-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc7)
+**[Download the `.exe` installer](https://github.com/zanella-logos/zanella-orchestrator/releases/download/v0.1.0-rc8/Zanella-Orchestrator-Setup-0.1.0-rc8-windows-x64.exe)** · [View all releases](https://github.com/zanella-logos/zanella-orchestrator/releases) · [Checksum](https://github.com/zanella-logos/zanella-orchestrator/releases/tag/v0.1.0-rc8)
 
 Compatible with 64-bit Windows 10 and 11. The application is not digitally signed yet, so Windows may display a security warning. Verify the SHA-256 checksum published with the release before installing.
 
@@ -43,7 +43,7 @@ Without a limit, a stuck robot can hold the sequential queue until it is cancell
 
 ### Updating Zanella Orchestrator
 
-Close Zanella Orchestrator, wait for running robots to finish, and install RC7 over the existing installation under the same Windows account. Uninstalling is not required. The SQLite schema migration saves a backup before changing the schema and preserves existing registrations, limits, history, and schedules.
+Close Zanella Orchestrator, wait for running robots to finish, and install RC8 over the existing installation under the same Windows account. Uninstalling is not required. The SQLite schema migration saves a backup before changing the schema and preserves existing registrations, limits, history, and schedules.
 
 **Existing limits, including 180 or 300 seconds, are not removed automatically.** In **Manutenção e portabilidade**, choose **Remover limites de execução** and confirm to remove limits from all registrations and queued items. This action first backs up registrations and queued configurations; SQLite also gets a full database backup. Past history remains unchanged. For PostgreSQL, use the server's backup tools for a full database backup. The action is blocked while a robot is executing.
 
@@ -108,7 +108,6 @@ Run setup under the same Windows account that will run Zanella Orchestrator and 
 
 All entry points in one installation must use the same mutex identifier. The scheduler was validated under the same Windows account as the application. Transactional claiming alone does not prevent two different jobs from running simultaneously; the mutex is also required.
 
-RC6 local validation on 2026-10-05: 88 tests passed and 1 PostgreSQL test was skipped. The packaged scheduler completed an unlimited robot, enforced an explicit limit, continued FIFO immediately, rejected a concurrent worker, and opened no extra window. The user's VDI validation is still pending.
 
 ## Database and migrations
 
@@ -135,7 +134,7 @@ For the `hang` demo, enable a short total execution limit to validate `timed_out
 
 ## Release candidate
 
-RC6 changes the default to **No limit**, makes the total execution limit explicit, simplifies the Community history to State, and updates OAuthlib to 4.0.0. It retains continuous FIFO queue processing and configurable polling from 1 to 59 minutes from RC5. RC6 is available for download. New automations use No limit; existing limits require explicit removal.
+RC8 improves robot window activation during automatic execution through Windows Task Scheduler. Zanella restores minimized windows and requests focus only for windows belonging to the current run. Sequential queue processing is preserved. To update, wait for running robots to finish, close Zanella, and install over the existing version.
 
 ## Windows executable
 
@@ -144,10 +143,10 @@ The project follows the official `flet build` structure with `main.py` as its en
 ```powershell
 uv pip install "flet[cli]==1.0.0"
 .venv\Scripts\python.exe scripts\prepare_windows_build.py
-.venv\Scripts\flet.exe build windows "<staging-path>" --python-version 3.13 --no-compile-app --build-version 0.1.0 --build-number 10 --output build/windows-rc6-final --yes --no-rich-output
+.venv\Scripts\flet.exe build windows "<staging-path>" --python-version 3.13 --no-compile-app --build-version 0.1.0 --build-number 12 --output build/windows-rc8-final --yes --no-rich-output
 ```
 
-Replace `<staging-path>` with the full path printed by the preparation script. Python sources remain in the package because Alembic discovers revisions under `migrations\versions`. Release sources are staged with `scripts/prepare_windows_build.py` to exclude local test data. The RC6 build is written to `build\windows-rc6-final`; Inno Setup builds the installer from `installer\Zanella-Orchestrator.iss`.
+Replace `<staging-path>` with the full path printed by the preparation script. Python sources remain in the package because Alembic discovers revisions under `migrations\versions`. Release sources are staged with `scripts/prepare_windows_build.py` to exclude local test data. The RC6 build is written to `build\windows-rc8-final`; Inno Setup builds the installer from `installer\Zanella-Orchestrator.iss`.
 
 Release installer: `dist\Zanella-Orchestrator-Setup-0.1.0-rc6-windows-x64.exe`. Verify it with `dist\SHA256SUMS-0.1.0-rc6.txt`.
 

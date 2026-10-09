@@ -1,5 +1,1 @@
-A RC7 adiciona rolagem vertical à lista de agendamentos, permitindo acessar todos os robôs cadastrados.
-
-A tarefa do Agendador do Windows passa a se chamar Zanella Orchestrator. A tarefa antiga é migrada preservando sua configuração e evitando gatilhos duplicados.
-
-Para atualizar, feche o Zanella Orchestrator e instale por cima da versão existente.
+A RC8 melhora a abertura das janelas dos robôs na execução automática pelo Agendador do Windows. O Zanella restaura janelas minimizadas e solicita foco apenas às janelas pertencentes à execução atual. A fila sequencial permanece preservada. Para atualizar, aguarde os robôs terminarem, feche o Zanella e instale por cima da versão existente.

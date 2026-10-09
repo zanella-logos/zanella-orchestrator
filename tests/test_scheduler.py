@@ -110,7 +110,7 @@ def test_windows_task_installer_uses_selected_interval(tmp_path, monkeypatch, in
     runner = (tmp_path / "data" / "run-scheduler.vbs").read_text(encoding="utf-16")
     assert str(rcc_path) in runner
     assert "scheduler" in runner
-    assert f'exitCode = shell.Run("""{rcc_path}""" scheduler, 0, True)' in runner
+    assert f'exitCode = shell.Run("""{rcc_path}""" scheduler, 1, True)' in runner
     assert f'shell.Environment("PROCESS")("RCC_DATA_DIR") = "{tmp_path / "data"}"' in runner
 
 
@@ -138,7 +138,7 @@ def test_packaged_task_runs_app_in_scheduler_mode(tmp_path, monkeypatch):
     assert str(packaged_exe) in runner
     assert 'shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"' in runner
     assert f'shell.Environment("PROCESS")("RCC_DATA_DIR") = "{data_dir}"' in runner
-    assert f'exitCode = shell.Run("""{packaged_exe}""", 0, True)' in runner
+    assert f'exitCode = shell.Run("""{packaged_exe}""", 1, True)' in runner
     assert '" scheduler' not in runner
 
 
@@ -200,3 +200,41 @@ def test_open_windows_task_scheduler(monkeypatch):
     scheduler_module.open_windows_task_scheduler()
 
     assert captured == ["taskschd.msc"]
+
+
+def test_existing_hidden_runner_upgrade_preserves_configuration(tmp_path, monkeypatch):
+    runner = tmp_path / "run-scheduler.vbs"
+    original = (
+        'Set shell = CreateObject("WScript.Shell")\n'
+        'shell.CurrentDirectory = "C:\\Usuários\\Zanella\\data"\n'
+        'shell.Environment("PROCESS")("RCC_DATA_DIR") = "C:\\Usuários\\Zanella\\data"\n'
+        'shell.Environment("PROCESS")("RCC_SCHEDULER_MODE") = "1"\n'
+        'exitCode = shell.Run("""C:\\Programas\\Zanella-Orchestrator.exe""", 0, True)\n'
+        'WScript.Quit exitCode\n'
+    )
+    runner.write_text(original, encoding="utf-16")
+    original_bytes = runner.read_bytes()
+    interval = tmp_path / "scheduler-interval.txt"
+    interval.write_text("07", encoding="utf-8")
+    monkeypatch.setattr(scheduler_module, "application_data_dir", lambda: tmp_path)
+    monkeypatch.setattr(scheduler_module, "_migrate_legacy_windows_task", lambda: None)
+    monkeypatch.setattr(scheduler_module, "_windows_task_exists", lambda _name: True)
+
+    assert scheduler_module.windows_task_installed()
+    assert runner.read_text(encoding="utf-16") == original.replace(", 0, True)", ", 1, True)")
+    assert runner.with_name("run-scheduler.before-focus.vbs").read_bytes() == original_bytes
+    assert interval.read_text(encoding="utf-8") == "07"
+    assert scheduler_module.windows_task_installed()
+    assert runner.with_name("run-scheduler.before-focus.vbs").read_bytes() == original_bytes
+
+
+def test_missing_task_does_not_change_runner(tmp_path, monkeypatch):
+    runner = tmp_path / "run-scheduler.vbs"
+    runner.write_text('exitCode = shell.Run("app", 0, True)\n', encoding="utf-16")
+    original = runner.read_bytes()
+    monkeypatch.setattr(scheduler_module, "application_data_dir", lambda: tmp_path)
+    monkeypatch.setattr(scheduler_module, "_migrate_legacy_windows_task", lambda: None)
+    monkeypatch.setattr(scheduler_module, "_windows_task_exists", lambda _name: False)
+
+    assert not scheduler_module.windows_task_installed()
+    assert runner.read_bytes() == original

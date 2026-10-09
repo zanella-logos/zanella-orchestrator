@@ -75,6 +75,118 @@ def test_python_robot_does_not_inherit_packaged_python_paths(tmp_path, monkeypat
     engine.dispose()
 
 
+def test_desktop_trace_records_owned_process_without_robot_output(tmp_path, monkeypatch):
+    monkeypatch.setenv("RCC_DESKTOP_TRACE", "1")
+    engine, run_id = create_run(tmp_path, "import time; time.sleep(1.5)")
+    logs = tmp_path / "logs"
+    assert execute_run(engine, run_id, logs) == "completed"
+    records = [json.loads(line) for line in
+               (logs / run_id / "desktop-trace.jsonl").read_text(encoding="utf-8").splitlines()]
+    run = get_run(engine, run_id)
+    assert any(run.process_id in record["owned_pids"] for record in records)
+    assert all(record["root_pid"] == run.process_id for record in records)
+    assert Path(run.stdout_path).read_bytes() == b""
+    assert Path(run.stderr_path).read_bytes() == b""
+    assert all("title" not in window for record in records for window in record["windows"])
+    engine.dispose()
+
+
+def test_desktop_trace_handles_native_window(tmp_path, monkeypatch):
+    monkeypatch.setenv("RCC_DESKTOP_TRACE", "1")
+    source = """
+import time, win32gui
+window = win32gui.CreateWindowEx(0, 'STATIC', '', 0, 0, 0, 100, 100, 0, 0, 0, None)
+time.sleep(2)
+win32gui.DestroyWindow(window)
+"""
+    engine, run_id = create_run(tmp_path, source)
+    logs = tmp_path / "logs"
+    assert execute_run(engine, run_id, logs) == "completed"
+    records = [json.loads(line) for line in
+               (logs / run_id / "desktop-trace.jsonl").read_text(encoding="utf-8").splitlines()]
+    assert any(row.get("windows") for row in records)
+    assert not any("diagnostic_error" in row for row in records)
+    engine.dispose()
+
+
+def test_desktop_trace_api_failure_does_not_stop_robot(tmp_path, monkeypatch):
+    from rpa_control_center import windows
+    monkeypatch.setenv("RCC_DESKTOP_TRACE", "1")
+
+    def missing_api(*args):
+        raise AttributeError("Unavailable diagnostic API")
+
+    monkeypatch.setattr(windows.win32gui, "EnumWindows", missing_api)
+    engine, run_id = create_run(tmp_path, "print('ROBOT_COMPLETED')")
+    logs = tmp_path / "logs"
+    assert execute_run(engine, run_id, logs) == "completed"
+    run = get_run(engine, run_id)
+    assert 'ROBOT_COMPLETED' in Path(run.stdout_path).read_text()
+    assert 'diagnostic_error' in (logs / run_id / 'desktop-trace.jsonl').read_text()
+    engine.dispose()
+
+
+def test_owned_window_activation_restores_minimized_robot_window(tmp_path, monkeypatch):
+    monkeypatch.setenv("RCC_DESKTOP_TRACE", "1")
+    monkeypatch.setenv("RCC_WINDOW_ACTIVATION", "1")
+    source = """
+import time, win32gui, win32con
+window = win32gui.CreateWindowEx(0, 'STATIC', 'Activation validation',
+    win32con.WS_OVERLAPPEDWINDOW, 100, 100, 300, 150, 0, 0, 0, None)
+win32gui.ShowWindow(window, win32con.SW_SHOWMINNOACTIVE)
+deadline = time.monotonic() + 8
+ok = False
+while time.monotonic() < deadline:
+    win32gui.PumpWaitingMessages()
+    if not win32gui.IsIconic(window) and win32gui.GetForegroundWindow() == window:
+        ok = True
+        break
+    time.sleep(.05)
+print('RESTORED_AND_FOCUSED' if ok else 'ACTIVATION_FAILED', flush=True)
+win32gui.DestroyWindow(window)
+raise SystemExit(0 if ok else 3)
+"""
+    engine, run_id = create_run(tmp_path, source)
+    logs = tmp_path / "logs"
+    assert execute_run(engine, run_id, logs) == "completed"
+    run = get_run(engine, run_id)
+    assert 'RESTORED_AND_FOCUSED' in Path(run.stdout_path).read_text()
+    engine.dispose()
+
+
+def test_window_activation_failure_does_not_interrupt_robot(tmp_path, monkeypatch):
+    from rpa_control_center import windows
+    monkeypatch.setenv("RCC_WINDOW_ACTIVATION", "1")
+    query = windows.win32job.QueryInformationJobObject
+
+    def unavailable_window_list(job, info):
+        if info == windows.win32job.JobObjectBasicProcessIdList:
+            raise RuntimeError("Window enumeration unavailable")
+        return query(job, info)
+
+    monkeypatch.setattr(windows.win32job, "QueryInformationJobObject", unavailable_window_list)
+    engine, run_id = create_run(tmp_path, "import time;time.sleep(1);print('FINISHED')")
+    assert execute_run(engine, run_id, tmp_path / "logs") == "completed"
+    assert 'FINISHED' in Path(get_run(engine, run_id).stdout_path).read_text()
+    engine.dispose()
+
+
+def test_window_activation_refuses_window_outside_job(tmp_path):
+    import os
+    from rpa_control_center.windows import OwnedWindowActivation, ProcessTree
+    from rpa_control_center import windows
+    hwnd = windows.win32gui.CreateWindowEx(0, 'STATIC', '', 0, 0, 0, 100, 100, 0, 0, 0, None)
+    try:
+        with ProcessTree([sys.executable, '-c', 'import time;time.sleep(1)'], str(tmp_path)) as process:
+            activation = OwnedWindowActivation(process)
+            assert activation._activate(hwnd, os.getpid()) is False
+            assert not windows.win32gui.IsWindowVisible(hwnd)
+            process.stop()
+            process.wait(5)
+    finally:
+        windows.win32gui.DestroyWindow(hwnd)
+
+
 def test_business_error_is_distinct_from_technical_success(tmp_path):
     source = """
 import json, os
